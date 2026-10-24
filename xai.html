@@ -1,0 +1,743 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>NOEMA — Frontier Intelligence</title>
+<meta name="description" content="NOEMA builds models that reason from first principles.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500&family=JetBrains+Mono:wght@400&display=swap" rel="stylesheet">
+<script>document.documentElement.classList.add('js');</script>
+<style>
+/* ─────────────────────────  TOKENS  ───────────────────────── */
+:root{
+  /* Surface */
+  --canvas:#0a0a0a;
+  --canvas-soft:#1a1c20;
+  --canvas-card:#191919;
+  --canvas-mid:#363a3f;
+  --hairline:#212327;
+
+  /* Text */
+  --ink:#ffffff;
+  --ink-hover:#fafaf7;
+  --body:#dadbdf;
+  --mute:#7d8187;
+
+  /* Primary */
+  --primary:#ffffff;
+  --on-primary:#0a0a0a;
+
+  /* Accent (rare) */
+  --sunset:#ff7a17;
+  --sunset-soft:#ffc285;
+  --dusk:#7c3aed;
+  --twilight:#c4b5fd;
+  --breeze:#a0c3ec;
+
+  /* Borders */
+  --border-soft:rgba(255,255,255,.14);
+  --border-strong:rgba(255,255,255,.25);
+
+  /* Geometry */
+  --radius:8px;
+  --pill:9999px;
+  --max:1200px;
+
+  /* Type */
+  --sans:'Inter',system-ui,-apple-system,'Segoe UI',Roboto,sans-serif;
+  --mono:'JetBrains Mono',ui-monospace,SFMono-Regular,Menlo,Monaco,monospace;
+}
+
+/* ─────────────────────────  RESET  ───────────────────────── */
+*,*::before,*::after{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%;scroll-behavior:smooth}
+body{
+  margin:0;
+  background:var(--canvas);
+  color:var(--ink);
+  font-family:var(--sans);
+  font-size:16px;
+  font-weight:400;
+  line-height:1.5;
+  -webkit-font-smoothing:antialiased;
+  -moz-osx-font-smoothing:grayscale;
+  overflow-x:hidden;
+}
+h1,h2,h3,h4,p,figure,ul{margin:0}
+ul{padding:0;list-style:none}
+a{color:inherit;text-decoration:none}
+button{font:inherit;color:inherit;background:none;border:0}
+img,svg{display:block;max-width:100%}
+::selection{background:#fff;color:#0a0a0a}
+::-webkit-scrollbar{width:10px}
+::-webkit-scrollbar-track{background:var(--canvas)}
+::-webkit-scrollbar-thumb{background:var(--hairline);border-radius:8px}
+::-webkit-scrollbar-thumb:hover{background:var(--canvas-mid)}
+
+/* ─────────────────────────  TYPE SCALE  ───────────────────────── */
+.display-xl{font-size:clamp(48px,7.2vw,96px);line-height:1;letter-spacing:-0.025em;font-weight:400}
+.display-lg{font-size:clamp(38px,5.4vw,72px);line-height:1;letter-spacing:-0.025em;font-weight:400}
+.display-md{font-size:clamp(30px,3.6vw,48px);line-height:1.05;letter-spacing:-0.025em;font-weight:400}
+.display-sm{font-size:clamp(22px,2.2vw,32px);line-height:1.15;letter-spacing:-0.019em;font-weight:400}
+.display-xs{font-size:20px;line-height:28px;letter-spacing:0;font-weight:400}
+
+.body-lg{font-size:18px;line-height:28px;color:var(--body)}
+.body-md{font-size:16px;line-height:24px;color:var(--body)}
+.body-sm{font-size:14px;line-height:20px;color:var(--body)}
+
+.mono{font-family:var(--mono);font-size:14px;line-height:20px;letter-spacing:1.4px;text-transform:uppercase}
+.mono-sm{font-family:var(--mono);font-size:12px;line-height:16px;letter-spacing:1.2px;text-transform:uppercase}
+
+.mute{color:var(--mute)}
+
+/* ─────────────────────────  LAYOUT  ───────────────────────── */
+.container{width:100%;max-width:var(--max);margin-inline:auto;padding-inline:24px}
+.section{padding:96px 0}
+.section--tight{padding:56px 0}
+.divider{height:1px;border:0;background:var(--hairline)}
+.divider--glow{
+  height:1px;border:0;
+  background:linear-gradient(90deg,transparent 0%,rgba(255,122,23,.55) 25%,rgba(124,58,237,.55) 75%,transparent 100%);
+  opacity:.35;
+}
+
+.grid{display:grid;gap:16px}
+.grid--2{grid-template-columns:repeat(2,1fr)}
+.grid--3{grid-template-columns:repeat(3,1fr)}
+.grid--4{grid-template-columns:repeat(4,1fr)}
+
+@media(max-width:960px){
+  .grid--3,.grid--4{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:680px){
+  .grid--2,.grid--3,.grid--4{grid-template-columns:1fr}
+  .container{padding-inline:20px}
+  .section{padding:64px 0}
+}
+
+/* ─────────────────────────  EYEBROW  ───────────────────────── */
+.eyebrow{
+  display:inline-flex;align-items:center;gap:10px;
+  color:var(--ink);
+  margin-bottom:20px;
+}
+.eyebrow .dot{
+  width:5px;height:5px;border-radius:50%;
+  background:var(--sunset);
+  box-shadow:0 0 12px rgba(255,122,23,.85);
+  flex:none;
+}
+
+/* ─────────────────────────  BUTTONS  ───────────────────────── */
+.btn{
+  --btn-bg:transparent;
+  --btn-bg-hover:rgba(255,255,255,.07);
+  --btn-bd:var(--border-strong);
+  --btn-bd-hover:rgba(255,255,255,.5);
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;
+  min-height:42px;padding:10px 18px;
+  font-size:14px;line-height:20px;font-weight:400;
+  color:var(--ink);background:var(--btn-bg);
+  border:1px solid var(--btn-bd);border-radius:var(--pill);
+  cursor:pointer;white-space:nowrap;
+  transition:background .2s ease,border-color .2s ease,transform .15s ease;
+}
+.btn:hover{background:var(--btn-bg-hover);border-color:var(--btn-bd-hover)}
+.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+
+.btn--primary{--btn-bg:#fff;--btn-bg-hover:#fafaf7;--btn-bd:#fff;--btn-bd-hover:#fafaf7;color:var(--on-primary)}
+.btn--invert{--btn-bg:#0a0a0a;--btn-bg-hover:#1a1c20;--btn-bd:#0a0a0a;--btn-bd-hover:#1a1c20;color:#fff}
+.btn--sm{min-height:36px;padding:8px 14px;font-size:13px}
+.btn--lg{min-height:48px;padding:12px 24px;font-size:15px}
+
+/* ─────────────────────────  NAV  ───────────────────────── */
+.nav{
+  position:sticky;top:0;z-index:60;
+  background:rgba(10,10,10,.78);
+  -webkit-backdrop-filter:blur(14px);
+  backdrop-filter:blur(14px);
+  border-bottom:1px solid var(--hairline);
+}
+.nav__inner{
+  display:flex;align-items:center;justify-content:space-between;gap:24px;
+  padding-block:12px;
+}
+.brand{
+  display:inline-flex;align-items:center;gap:10px;
+  font-size:14px;letter-spacing:.22em;text-transform:uppercase;
+  color:var(--ink);
+}
+.brand svg{color:var(--ink)}
+.nav__links{display:flex;align-items:center;gap:28px}
+.nav__link{
+  font-size:14px;line-height:20px;color:var(--body);
+  transition:color .2s ease;
+}
+.nav__link:hover{color:var(--ink)}
+.nav__actions{display:flex;align-items:center;gap:10px}
+.nav__menu-btn{display:none}
+
+.mobile-panel{
+  border-top:1px solid var(--hairline);
+  padding:16px 0 24px;
+}
+.mobile-panel[hidden]{display:none}
+.mobile-panel ul{display:grid;gap:4px}
+.mobile-panel a{
+  display:block;padding:12px 0;
+  font-size:16px;color:var(--body);
+  border-bottom:1px solid var(--hairline);
+}
+.mobile-panel .btn{margin-top:20px;width:100%}
+
+@media(max-width:900px){
+  .nav__links{display:none}
+  .nav__actions .btn:not(.nav__menu-btn){display:none}
+  .nav__menu-btn{display:inline-flex}
+}
+
+/* ─────────────────────────  HERO  ───────────────────────── */
+.hero{padding:112px 0 96px;position:relative}
+.hero__sub{max-width:600px;margin-top:28px}
+.hero__actions{display:flex;flex-wrap:wrap;gap:12px;margin-top:40px}
+.hero__meta{
+  display:flex;flex-wrap:wrap;gap:8px 20px;align-items:center;
+  margin-top:56px;color:var(--mute);
+}
+.hero__meta .sep{width:1px;height:12px;background:var(--canvas-mid)}
+@media(max-width:680px){
+  .hero{padding:64px 0 56px}
+  .hero__sub{margin-top:20px}
+  .hero__actions{margin-top:32px}
+  .hero__meta{margin-top:40px}
+}
+
+/* ─────────────────────────  STATS  ───────────────────────── */
+.stats-band{border-top:1px solid var(--hairline);border-bottom:1px solid var(--hairline)}
+.stat__num{
+  font-family:var(--mono);
+  font-size:clamp(24px,3vw,32px);
+  line-height:1.1;
+  letter-spacing:-0.01em;
+  color:var(--ink);
+}
+.stat__label{
+  font-family:var(--mono);
+  font-size:12px;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--mute);margin-top:10px;
+}
+
+/* ─────────────────────────  SECTION HEAD  ───────────────────────── */
+.section-head{max-width:760px;margin-bottom:48px}
+.section-head .display-md{margin-top:0}
+.section-head__sub{margin-top:20px;max-width:560px}
+
+/* ─────────────────────────  CARDS  ───────────────────────── */
+.card{
+  display:flex;flex-direction:column;
+  background:var(--canvas-card);
+  border:1px solid var(--hairline);
+  border-radius:var(--radius);
+  padding:24px;
+  transition:border-color .25s ease,background .25s ease;
+}
+.card:hover{border-color:#2c2f34;background:#1c1c1c}
+.card__art{height:170px;margin-bottom:20px}
+.card__art svg{width:100%;height:100%}
+.card__title{margin-bottom:12px}
+.card__text{font-size:15px;line-height:24px;color:var(--body)}
+.card__cta{margin-top:auto;padding-top:24px;display:flex}
+
+/* ─────────────────────────  PRICING  ───────────────────────── */
+.pricing{display:grid;grid-template-columns:repeat(3,1fr);gap:16px}
+.tier{
+  display:flex;flex-direction:column;
+  background:var(--canvas-soft);
+  border:1px solid var(--hairline);
+  border-radius:var(--radius);
+  padding:28px;
+}
+.tier--featured{background:#fff;color:var(--on-primary);border-color:#fff}
+.tier__name{font-family:var(--mono);font-size:12px;line-height:16px;letter-spacing:1.2px;text-transform:uppercase;color:var(--mute)}
+.tier--featured .tier__name{color:rgba(10,10,10,.55)}
+.tier__price{
+  margin-top:22px;
+  font-size:clamp(32px,4vw,44px);line-height:1;letter-spacing:-0.025em;
+  display:flex;align-items:baseline;gap:8px;
+}
+.tier__price span{font-size:14px;letter-spacing:0;color:var(--mute)}
+.tier--featured .tier__price span{color:rgba(10,10,10,.55)}
+.tier__desc{margin-top:14px;font-size:14px;line-height:20px;color:var(--mute)}
+.tier--featured .tier__desc{color:rgba(10,10,10,.6)}
+.tier__features{display:grid;gap:12px;margin:26px 0 30px;padding-top:26px;border-top:1px solid var(--hairline)}
+.tier--featured .tier__features{border-color:rgba(10,10,10,.12)}
+.tier__features li{display:flex;gap:10px;align-items:flex-start;font-size:14px;line-height:20px;color:var(--body)}
+.tier--featured .tier__features li{color:rgba(10,10,10,.75)}
+.tier__features svg{flex:none;margin-top:3px;opacity:.75}
+.tier__cta{margin-top:auto}
+.tier__cta .btn{width:100%}
+
+@media(max-width:960px){.pricing{grid-template-columns:1fr}}
+
+/* ─────────────────────────  CTA BAND  ───────────────────────── */
+.cta{text-align:center;padding:120px 0}
+.cta .display-lg{max-width:820px;margin-inline:auto}
+.cta__sub{max-width:520px;margin:24px auto 0}
+.cta__actions{display:flex;flex-wrap:wrap;gap:12px;justify-content:center;margin-top:40px}
+@media(max-width:680px){.cta{padding:72px 0}}
+
+/* ─────────────────────────  FOOTER  ───────────────────────── */
+.footer{border-top:1px solid var(--hairline);padding:64px 0 40px}
+.footer__grid{display:grid;grid-template-columns:2fr 1fr 1fr 1fr;gap:40px}
+.footer__brand{display:flex;flex-direction:column;gap:16px;max-width:280px}
+.footer__col h4{
+  font-family:var(--mono);font-size:12px;line-height:16px;
+  letter-spacing:1.2px;text-transform:uppercase;
+  color:var(--mute);margin-bottom:16px;font-weight:400;
+}
+.footer__col ul{display:grid;gap:12px}
+.footer__col a{font-size:14px;line-height:20px;color:var(--body);transition:color .2s ease}
+.footer__col a:hover{color:var(--ink)}
+.footer__bottom{
+  display:flex;justify-content:space-between;flex-wrap:wrap;gap:16px;
+  margin-top:56px;padding-top:24px;
+  border-top:1px solid var(--hairline);
+  font-size:12px;line-height:16px;color:var(--mute);
+  font-family:var(--mono);letter-spacing:.06em;
+}
+@media(max-width:900px){.footer__grid{grid-template-columns:1fr 1fr}}
+@media(max-width:600px){.footer__grid{grid-template-columns:1fr;gap:32px}}
+
+/* ─────────────────────────  REVEAL  ───────────────────────── */
+.js .reveal{
+  opacity:0;transform:translateY(16px);
+  transition:opacity .7s cubic-bezier(.22,1,.36,1),transform .7s cubic-bezier(.22,1,.36,1);
+}
+.js .reveal.in{opacity:1;transform:none}
+@media(prefers-reduced-motion:reduce){
+  html{scroll-behavior:auto}
+  .js .reveal{opacity:1;transform:none;transition:none}
+  *{animation-duration:.01ms!important;transition-duration:.01ms!important}
+}
+</style>
+</head>
+<body>
+
+<!-- ══════════════════════  NAV  ══════════════════════ -->
+<header class="nav">
+  <div class="container">
+    <div class="nav__inner">
+      <a href="#" class="brand" aria-label="NOEMA home">
+        <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+          <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-opacity=".45"/>
+          <circle cx="9" cy="9" r="3" fill="currentColor"/>
+        </svg>
+        NOEMA
+      </a>
+
+      <nav class="nav__links" aria-label="Primary">
+        <a class="nav__link" href="#models">Models</a>
+        <a class="nav__link" href="#research">Research</a>
+        <a class="nav__link" href="#pricing">Pricing</a>
+        <a class="nav__link" href="#company">Company</a>
+      </nav>
+
+      <div class="nav__actions">
+        <a class="btn" href="#pricing">Sign in</a>
+        <a class="btn btn--primary" href="#cta">Try NOEMA</a>
+        <button class="btn nav__menu-btn" type="button" aria-expanded="false" aria-controls="mobile-panel">Menu</button>
+      </div>
+    </div>
+
+    <div class="mobile-panel" id="mobile-panel" hidden>
+      <ul>
+        <li><a href="#models">Models</a></li>
+        <li><a href="#research">Research</a></li>
+        <li><a href="#pricing">Pricing</a></li>
+        <li><a href="#company">Company</a></li>
+      </ul>
+      <a class="btn btn--primary" href="#cta">Try NOEMA</a>
+    </div>
+  </div>
+</header>
+
+<main>
+
+  <!-- ══════════════════════  HERO  ══════════════════════ -->
+  <section class="hero">
+    <div class="container">
+      <p class="mono eyebrow reveal"><span class="dot"></span>Frontier Intelligence</p>
+      <h1 class="display-xl reveal">Understand<br>the universe.</h1>
+      <p class="body-lg hero__sub reveal">
+        NOEMA builds models that reason from first principles — trained on the
+        structure of reality rather than the noise of the web. No benchmark
+        theatre. No marketing veneer.
+      </p>
+
+      <div class="hero__actions reveal">
+        <a class="btn btn--primary btn--lg" href="#cta">Try NOEMA</a>
+        <a class="btn btn--lg" href="#research">Read the announcement</a>
+      </div>
+
+      <div class="hero__meta mono-sm reveal">
+        <span>Model NOEMA-1</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>2M context</span>
+        <span class="sep" aria-hidden="true"></span>
+        <span>Released Q1 2026</span>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════  STATS  ══════════════════════ -->
+  <section class="stats-band">
+    <div class="container">
+      <div class="grid grid--4" style="padding:40px 0">
+        <div class="stat reveal">
+          <p class="stat__num">100K</p>
+          <p class="stat__label">GPUs in cluster</p>
+        </div>
+        <div class="stat reveal">
+          <p class="stat__num">2M</p>
+          <p class="stat__label">Context window, tokens</p>
+        </div>
+        <div class="stat reveal">
+          <p class="stat__num">0.4s</p>
+          <p class="stat__label">Median first token</p>
+        </div>
+        <div class="stat reveal">
+          <p class="stat__num">140</p>
+          <p class="stat__label">Papers published</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════  MODELS  ══════════════════════ -->
+  <section class="section" id="models">
+    <div class="container">
+      <div class="section-head">
+        <p class="mono eyebrow reveal"><span class="dot"></span>Surfaces</p>
+        <h2 class="display-md reveal">Three ways to reach<br>the same intelligence.</h2>
+        <p class="body-lg section-head__sub reveal">
+          One model family, exposed through a chat surface, a realtime voice
+          channel, and a raw API. The interface changes. The weights don't.
+        </p>
+      </div>
+
+      <div class="grid grid--3">
+
+        <!-- Card 1 -->
+        <article class="card reveal">
+          <div class="card__art">
+            <svg viewBox="0 0 320 170" fill="none" aria-hidden="true">
+              <ellipse cx="160" cy="85" rx="78" ry="30" stroke="rgba(255,255,255,0.10)"/>
+              <ellipse cx="160" cy="85" rx="78" ry="30" stroke="rgba(255,255,255,0.10)" transform="rotate(60 160 85)"/>
+              <ellipse cx="160" cy="85" rx="78" ry="30" stroke="rgba(255,255,255,0.10)" transform="rotate(120 160 85)"/>
+              <circle cx="160" cy="85" r="52" stroke="rgba(255,255,255,0.12)"/>
+              <circle cx="160" cy="85" r="32" stroke="rgba(255,255,255,0.20)"/>
+              <circle cx="160" cy="85" r="9" fill="#ff7a17"/>
+              <circle cx="238" cy="85" r="3" fill="#ffc285"/>
+              <circle cx="82" cy="85" r="2.5" fill="rgba(255,255,255,.28)"/>
+            </svg>
+          </div>
+          <h3 class="display-sm card__title">NOEMA-1</h3>
+          <p class="card__text">
+            A reasoning core that holds a 2M-token working memory and shows its
+            chain of thought. Built for problems with no prior art.
+          </p>
+          <div class="card__cta">
+            <a class="btn btn--sm" href="#">Read more</a>
+          </div>
+        </article>
+
+        <!-- Card 2 -->
+        <article class="card reveal">
+          <div class="card__art">
+            <svg viewBox="0 0 320 170" fill="none" aria-hidden="true">
+              <g stroke="#c4b5fd" stroke-width="2" stroke-linecap="round" opacity="0.85">
+                <line x1="100" y1="80" x2="100" y2="100"/>
+                <line x1="110" y1="66" x2="110" y2="114"/>
+                <line x1="120" y1="50" x2="120" y2="130"/>
+                <line x1="130" y1="62" x2="130" y2="118"/>
+                <line x1="140" y1="38" x2="140" y2="142"/>
+                <line x1="150" y1="72" x2="150" y2="108"/>
+                <line x1="160" y1="56" x2="160" y2="124"/>
+                <line x1="170" y1="28" x2="170" y2="152"/>
+                <line x1="180" y1="46" x2="180" y2="134"/>
+                <line x1="190" y1="70" x2="190" y2="110"/>
+                <line x1="200" y1="20" x2="200" y2="160"/>
+                <line x1="210" y1="70" x2="210" y2="110"/>
+                <line x1="220" y1="46" x2="220" y2="134"/>
+                <line x1="230" y1="28" x2="230" y2="152"/>
+                <line x1="240" y1="56" x2="240" y2="124"/>
+                <line x1="250" y1="72" x2="250" y2="108"/>
+                <line x1="260" y1="38" x2="260" y2="142"/>
+                <line x1="270" y1="62" x2="270" y2="118"/>
+                <line x1="280" y1="50" x2="280" y2="130"/>
+                <line x1="290" y1="66" x2="290" y2="114"/>
+                <line x1="300" y1="80" x2="300" y2="100"/>
+              </g>
+              <circle cx="200" cy="20" r="3" fill="#7c3aed"/>
+            </svg>
+          </div>
+          <h3 class="display-sm card__title">Realtime Voice</h3>
+          <p class="card__text">
+            Sub-200ms speech in and out, with interruption handling that behaves
+            like a conversation instead of a queue.
+          </p>
+          <div class="card__cta">
+            <a class="btn btn--sm" href="#">Read more</a>
+          </div>
+        </article>
+
+        <!-- Card 3 -->
+        <article class="card reveal">
+          <div class="card__art">
+            <svg viewBox="0 0 320 170" fill="none" aria-hidden="true">
+              <rect x="56" y="34" width="208" height="102" rx="6" stroke="rgba(255,255,255,0.14)"/>
+              <line x1="56" y1="56" x2="264" y2="56" stroke="rgba(255,255,255,0.10)"/>
+              <circle cx="68" cy="45" r="2.5" fill="rgba(255,255,255,0.30)"/>
+              <circle cx="78" cy="45" r="2.5" fill="rgba(255,255,255,0.20)"/>
+              <circle cx="88" cy="45" r="2.5" fill="rgba(255,255,255,0.12)"/>
+              <rect x="72" y="70" width="60" height="5" rx="2.5" fill="rgba(160,195,236,0.80)"/>
+              <rect x="72" y="84" width="104" height="5" rx="2.5" fill="rgba(255,255,255,0.16)"/>
+              <rect x="72" y="98" width="82" height="5" rx="2.5" fill="rgba(255,255,255,0.16)"/>
+              <rect x="72" y="112" width="46" height="5" rx="2.5" fill="rgba(196,181,253,0.75)"/>
+            </svg>
+          </div>
+          <h3 class="display-sm card__title">Developer API</h3>
+          <p class="card__text">
+            One endpoint, OpenAI-compatible shape, streaming by default.
+            Structured output and tool calls without a schema tax.
+          </p>
+          <div class="card__cta">
+            <a class="btn btn--sm" href="#">Read more</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider divider--glow">
+
+  <!-- ══════════════════════  RESEARCH  ══════════════════════ -->
+  <section class="section" id="research">
+    <div class="container">
+      <div class="section-head">
+        <p class="mono eyebrow reveal"><span class="dot"></span>Research</p>
+        <h2 class="display-md reveal">We publish what works<br>and what doesn't.</h2>
+      </div>
+
+      <div class="grid grid--2">
+
+        <article class="card reveal">
+          <p class="mono-sm mute" style="margin-bottom:18px">2026 · 02 · 14</p>
+          <h3 class="display-xs card__title">Scaling laws for verifiable reasoning</h3>
+          <p class="card__text">
+            We show that compute spent on self-verification yields a steeper
+            return curve than compute spent on raw pretraining, up to a
+            measurable crossover point.
+          </p>
+          <div class="card__cta">
+            <a class="btn btn--sm" href="#">Read paper</a>
+          </div>
+        </article>
+
+        <article class="card reveal">
+          <p class="mono-sm mute" style="margin-bottom:18px">2025 · 11 · 03</p>
+          <h3 class="display-xs card__title">A 2M-token memory that stays coherent</h3>
+          <p class="card__text">
+            Retrieval-augmented attention without an external index. Recall
+            degrades gracefully rather than collapsing past 200K tokens.
+          </p>
+          <div class="card__cta">
+            <a class="btn btn--sm" href="#">Read paper</a>
+          </div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <!-- ══════════════════════  PRICING  ══════════════════════ -->
+  <section class="section" id="pricing">
+    <div class="container">
+      <div class="section-head">
+        <p class="mono eyebrow reveal"><span class="dot"></span>Access</p>
+        <h2 class="display-md reveal">Pay for compute,<br>not for seats.</h2>
+      </div>
+
+      <div class="pricing">
+
+        <article class="tier reveal">
+          <p class="tier__name">Builder</p>
+          <p class="tier__price">$0<span>/mo</span></p>
+          <p class="tier__desc">For evaluating the model and shipping a first prototype.</p>
+          <ul class="tier__features">
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>200K context window</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>1M tokens / month</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Community support</span></li>
+          </ul>
+          <div class="tier__cta"><a class="btn" href="#cta">Get started</a></div>
+        </article>
+
+        <article class="tier tier--featured reveal">
+          <p class="tier__name">Researcher</p>
+          <p class="tier__price">$240<span>/mo</span></p>
+          <p class="tier__desc">For teams running the model against real work, daily.</p>
+          <ul class="tier__features">
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>2M context window</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Unlimited tokens</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Realtime voice channel</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Priority inference queue</span></li>
+          </ul>
+          <div class="tier__cta"><a class="btn btn--invert" href="#cta">Choose Researcher</a></div>
+        </article>
+
+        <article class="tier reveal">
+          <p class="tier__name">Frontier</p>
+          <p class="tier__price">Custom</p>
+          <p class="tier__desc">For labs and enterprises running dedicated capacity.</p>
+          <ul class="tier__features">
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Dedicated cluster slice</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Private weights</span></li>
+            <li><svg width="14" height="14" viewBox="0 0 14 14" fill="none"><path d="M2 7.5L5.5 11L12 3.5" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"/></svg><span>Named research contact</span></li>
+          </ul>
+          <div class="tier__cta"><a class="btn" href="#cta">Contact us</a></div>
+        </article>
+
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ══════════════════════  CTA  ══════════════════════ -->
+  <section class="cta" id="cta">
+    <div class="container">
+      <h2 class="display-lg reveal">The universe is not<br>going to explain itself.</h2>
+      <p class="body-lg cta__sub reveal">
+        Request access to NOEMA-1 and start reasoning from first principles.
+      </p>
+      <div class="cta__actions reveal">
+        <a class="btn btn--primary btn--lg" href="#">Request access</a>
+        <a class="btn btn--lg" href="#">Talk to research</a>
+      </div>
+    </div>
+  </section>
+
+</main>
+
+<!-- ══════════════════════  FOOTER  ══════════════════════ -->
+<footer class="footer" id="company">
+  <div class="container">
+    <div class="footer__grid">
+
+      <div class="footer__brand">
+        <a href="#" class="brand">
+          <svg width="18" height="18" viewBox="0 0 18 18" fill="none" aria-hidden="true">
+            <circle cx="9" cy="9" r="7.5" stroke="currentColor" stroke-opacity=".45"/>
+            <circle cx="9" cy="9" r="3" fill="currentColor"/>
+          </svg>
+          NOEMA
+        </a>
+        <p class="body-sm mute">
+          A frontier AI lab building models that reason from first principles.
+          Palo Alto · London · Tokyo.
+        </p>
+      </div>
+
+      <div class="footer__col">
+        <h4>Product</h4>
+        <ul>
+          <li><a href="#models">NOEMA-1</a></li>
+          <li><a href="#models">Realtime Voice</a></li>
+          <li><a href="#models">Developer API</a></li>
+          <li><a href="#pricing">Pricing</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Research</h4>
+        <ul>
+          <li><a href="#research">Publications</a></li>
+          <li><a href="#research">Model cards</a></li>
+          <li><a href="#">Safety</a></li>
+          <li><a href="#">Careers</a></li>
+        </ul>
+      </div>
+
+      <div class="footer__col">
+        <h4>Company</h4>
+        <ul>
+          <li><a href="#">About</a></li>
+          <li><a href="#">Press</a></li>
+          <li><a href="#">Privacy</a></li>
+          <li><a href="#">Terms</a></li>
+        </ul>
+      </div>
+
+    </div>
+
+    <div class="footer__bottom">
+      <span>© 2026 NOEMA LABS, INC.</span>
+      <span>ALL SYSTEMS NOMINAL</span>
+    </div>
+  </div>
+</footer>
+
+<script>
+/* ── Mobile nav ─────────────────────────────── */
+(function () {
+  var btn = document.querySelector('.nav__menu-btn');
+  var panel = document.getElementById('mobile-panel');
+  if (!btn || !panel) return;
+
+  btn.addEventListener('click', function () {
+    var willOpen = panel.hasAttribute('hidden');
+    if (willOpen) {
+      panel.removeAttribute('hidden');
+    } else {
+      panel.setAttribute('hidden', '');
+    }
+    btn.setAttribute('aria-expanded', String(willOpen));
+  });
+
+  panel.addEventListener('click', function (e) {
+    if (e.target.closest('a')) {
+      panel.setAttribute('hidden', '');
+      btn.setAttribute('aria-expanded', 'false');
+    }
+  });
+})();
+
+/* ── Scroll reveal ──────────────────────────── */
+(function () {
+  var items = document.querySelectorAll('.reveal');
+  if (!('IntersectionObserver' in window)) {
+    items.forEach(function (el) { el.classList.add('in'); });
+    return;
+  }
+
+  var io = new IntersectionObserver(function (entries) {
+    entries.forEach(function (entry) {
+      if (!entry.isIntersecting) return;
+      entry.target.classList.add('in');
+      io.unobserve(entry.target);
+    });
+  }, { rootMargin: '0px 0px -8% 0px', threshold: 0.12 });
+
+  items.forEach(function (el, i) {
+    el.style.transitionDelay = (Math.min(i, 6) * 40) + 'ms';
+    io.observe(el);
+  });
+})();
+</script>
+
+</body>
+</html>
