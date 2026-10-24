@@ -322,6 +322,40 @@ img,svg{display:block;max-width:100%}
   .js .reveal{opacity:1;transform:none;transition:none}
   *{animation-duration:.01ms!important;transition-duration:.01ms!important}
 }
+  /* ── 关闭按钮 ── */
+.noema-close{
+  position:fixed;
+  right:24px;
+  bottom:24px;
+  z-index:9999;
+  display:inline-flex;
+  align-items:center;
+  gap:8px;
+  min-height:40px;
+  padding:0 16px;
+  font-family:var(--mono);
+  font-size:12px;
+  letter-spacing:1.2px;
+  text-transform:uppercase;
+  color:var(--ink);
+  background:rgba(10,10,10,.72);
+  border:1px solid var(--border-strong);
+  border-radius:var(--pill);
+  -webkit-backdrop-filter:blur(12px);
+  backdrop-filter:blur(12px);
+  cursor:pointer;
+  transition:background .2s ease,border-color .2s ease,transform .15s ease;
+}
+.noema-close:hover{
+  background:rgba(255,255,255,.10);
+  border-color:rgba(255,255,255,.55);
+}
+.noema-close:active{transform:scale(.96)}
+.noema-close:focus-visible{outline:2px solid var(--ink);outline-offset:3px}
+@media(max-width:680px){
+  .noema-close{right:16px;bottom:16px;padding:0 12px}
+  .noema-close span{display:none}
+                               }
 </style>
 </head>
 <body>
@@ -737,7 +771,35 @@ img,svg{display:block;max-width:100%}
     io.observe(el);
   });
 })();
-</script>
+  /* ── 关闭按钮：通知父页面（Wikidot）隐藏 iframe ── */
+(function () {
+  var btn = document.getElementById('noema-close');
+  if (!btn) return;
 
+  function close() {
+    try {
+      // 跨域时只能靠 postMessage 通信
+      window.parent.postMessage({ type: 'noema:close' }, '*');
+    } catch (err) { /* 忽略 */ }
+  }
+
+  btn.addEventListener('click', function (e) {
+    e.preventDefault();
+    close();
+  });
+
+  // 可选：按 ESC 也能关闭
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+  });
+})();
+</script>
+<!-- 关闭按钮：固定在右下角 -->
+<a href="#" class="noema-close" id="noema-close" aria-label="关闭并返回">
+  <svg width="14" height="14" viewBox="0 0 14 14" fill="none" aria-hidden="true">
+    <path d="M2 2L12 12M12 2L2 12" stroke="currentColor" stroke-width="1.6" stroke-linecap="round"/>
+  </svg>
+  <span>关闭</span>
+</a>
 </body>
 </html>
