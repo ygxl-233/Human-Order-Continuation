@@ -36,13 +36,18 @@
 }
 
 *,*::before,*::after{ box-sizing:border-box; }
-html{ scroll-behavior:smooth; scroll-padding-top:88px; -webkit-text-size-adjust:100%; }
+html{
+  scroll-behavior:smooth;
+  scroll-padding-top:88px;
+  -webkit-text-size-adjust:100%;
+  overscroll-behavior: none;   /* 新增：阻止滚动链传给父页面 */
+}
 
 body{
   margin: 0;
   padding: 0;
-  height: 100%;
-  overflow: hidden; /* 关键：锁死根元素的滚动 */
+  /* height: 100%; 删除 */
+  /* overflow: hidden; 删除 */
   background: var(--canvas);
   color: var(--ink);
   font-family: var(--font);
@@ -53,6 +58,7 @@ body{
   -moz-osx-font-smoothing:grayscale;
   overflow-x:hidden;
   font-variant-numeric: tabular-nums;
+  overscroll-behavior: none;   /* 新增：同上 */
 }
 
 ::selection{ background:#fff; color:#0a0a0a; }
@@ -68,17 +74,6 @@ ul{ margin:0; padding:0; list-style:none; }
 h1,h2,h3,h4,p{ margin:0; }
 
 .wrap{ width:min(1200px, calc(100% - 48px)); margin-inline:auto; }
-
-.scroll-container {
-  position: fixed; /* 或 absolute */
-  top: 0;
-  left: 0;
-  width: 100%;
-  /* 使用动态视口高度，自动适配地址栏折叠 */
-  height: 100dvh; 
-  overflow-y: auto; /* 关键：滚动发生在容器内部 */
-  -webkit-overflow-scrolling: touch; /* 启用惯性滚动 */
-}
 
 /* ============================================================
    TYPE
@@ -266,7 +261,7 @@ h1,h2,h3,h4,p{ margin:0; }
 .hero{
   position:relative;
   min-height: 100vh;
-  min-height: 100svh;
+  min-height: 100dvh;
   display:flex;
   flex-direction:column;
   justify-content:center;
