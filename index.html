@@ -75,6 +75,28 @@ h1,h2,h3,h4,p{ margin:0; }
 
 .wrap{ width:min(1200px, calc(100% - 48px)); margin-inline:auto; }
 
+/* =========================================================
+   0. BOOT
+   ========================================================= */
+requestAnimationFrame(() => {
+  document.body.classList.add('loaded');
+
+  // 通知父页面（Wikidot）可以撤掉遮罩了
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'cxyc-ready' }, '*');
+    }
+  } catch (e) {}
+});
+
+// 双保险：如果字体/图片加载耗时较长，资源全就绪后再发一次
+window.addEventListener('load', () => {
+  try {
+    if (window.parent && window.parent !== window) {
+      window.parent.postMessage({ type: 'cxyc-ready' }, '*');
+    }
+  } catch (e) {}
+});
 /* ============================================================
    TYPE
    ============================================================ */
