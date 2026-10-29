@@ -1,2083 +1,958 @@
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>xAI — 理解宇宙的真实本质</title>
-<meta name="description" content="前沿人工智能系统。从第一性原理出发，重新设计训练与推理的每一层。" />
-<link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
-<link href="https://fonts.googleapis.com/css2?family=Geist+Mono:wght@400&family=Inter:wght@400&display=swap" rel="stylesheet" />
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>直到蓝天重现</title>
 <style>
-/* ============================================================
-   TOKENS
-   ============================================================ */
-:root{
-  --canvas:        #0a0a0a;
-  --canvas-soft:   #1a1c20;
-  --canvas-card:   #191919;
-  --canvas-mid:    #363a3f;
-  --hairline:      #212327;
-  --ink:           #ffffff;
-  --body:          #dadbdf;
-  --mute:          #7d8187;
-  --sunset:        #ff7a17;
-  --sunset-soft:   #ffc285;
-  --dusk:          #7c3aed;
-  --twilight:      #c4b5fd;
-  --breeze:        #a0c3ec;
-
-  --font: 'Inter', system-ui, -apple-system, 'Segoe UI', 'PingFang SC', 'Hiragino Sans GB', 'Microsoft YaHei', sans-serif;
-  --mono: 'Geist Mono', ui-monospace, SFMono-Regular, Menlo, Monaco, monospace;
-
-  --radius-sm: 8px;
-  --pill: 9999px;
-  --ease: cubic-bezier(.16,1,.3,1);
-}
-
-*,*::before,*::after{ box-sizing:border-box; }
-html{
-  scroll-behavior:smooth;
-  scroll-padding-top:88px;
-  -webkit-text-size-adjust:100%;
-  overscroll-behavior: none;   /* 新增：阻止滚动链传给父页面 */
-}
-
-body{
-  margin: 0;
-  padding: 0;
-  /* height: 100%; 删除 */
-  /* overflow: hidden; 删除 */
-  background: var(--canvas);
-  color: var(--ink);
-  font-family: var(--font);
-  font-weight:400;
-  font-size:16px;
-  line-height:24px;
-  -webkit-font-smoothing:antialiased;
-  -moz-osx-font-smoothing:grayscale;
-  overflow-x:hidden;
-  font-variant-numeric: tabular-nums;
-  overscroll-behavior: none;   /* 新增：同上 */
-}
-
-::selection{ background:#fff; color:#0a0a0a; }
-
-::-webkit-scrollbar{ width:10px; height:10px; }
-::-webkit-scrollbar-track{ background: var(--canvas); }
-::-webkit-scrollbar-thumb{ background:#2a2d31; border-radius:99px; border:2px solid var(--canvas); }
-::-webkit-scrollbar-thumb:hover{ background:#3a3f45; }
-
-a{ color:inherit; text-decoration:none; }
-button{ font:inherit; color:inherit; background:none; border:none; cursor:pointer; }
-ul{ margin:0; padding:0; list-style:none; }
-h1,h2,h3,h4,p{ margin:0; }
-
-.wrap{ width:min(1200px, calc(100% - 48px)); margin-inline:auto; }
-
-/* =========================================================
-   0. BOOT
-   ========================================================= */
-requestAnimationFrame(() => {
-  document.body.classList.add('loaded');
-
-  // 通知父页面（Wikidot）可以撤掉遮罩了
-  try {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'cxyc-ready' }, '*');
-    }
-  } catch (e) {}
-});
-
-// 双保险：如果字体/图片加载耗时较长，资源全就绪后再发一次
-window.addEventListener('load', () => {
-  try {
-    if (window.parent && window.parent !== window) {
-      window.parent.postMessage({ type: 'cxyc-ready' }, '*');
-    }
-  } catch (e) {}
-});
-/* ============================================================
-   TYPE
-   ============================================================ */
-.display-xl{
-  font-size: clamp(44px, 8vw, 96px);
-  line-height: 1.02;
-  letter-spacing: -0.028em;
-  font-weight:400;
-}
-.display-md{
-  font-size: clamp(28px, 4.2vw, 48px);
-  line-height: 1.06;
-  letter-spacing: -0.028em;
-  font-weight:400;
-}
-.display-sm{
-  font-size: clamp(20px, 2.2vw, 24px);
-  line-height: 1.25;
-  letter-spacing: -0.02em;
-  font-weight:400;
-}
-.eyebrow{
-  font-family: var(--mono);
-  font-size: 14px;
-  line-height: 20px;
-  letter-spacing: 1.4px;
-  text-transform: uppercase;
-  color: var(--mute);
-  display:flex;
-  align-items:center;
-  gap:10px;
-}
-.eyebrow::before{
-  content:'';
-  width:5px; height:5px;
-  background: var(--ink);
-  border-radius:50%;
-  flex:none;
-}
-.mono{ font-family: var(--mono); letter-spacing:1.2px; text-transform:uppercase; }
-.body-lg{ font-size:18px; line-height:28px; color:var(--body); }
-.body-sm{ font-size:14px; line-height:20px; color:var(--mute); }
-
-/* ============================================================
-   ATOMS
-   ============================================================ */
-.pill{
-  display:inline-flex;
-  align-items:center;
-  justify-content:center;
-  gap:8px;
-  border-radius: var(--pill);
-  padding:8px 16px;
-  font-size:14px;
-  line-height:20px;
-  color:var(--ink);
-  border:1px solid rgba(255,255,255,.25);
-  background: transparent;
-  white-space:nowrap;
-  transition: background .3s var(--ease), border-color .3s var(--ease),
-              color .3s var(--ease), transform .35s var(--ease);
-  will-change: transform;
-}
-.pill:hover{
-  border-color: rgba(255,255,255,.65);
-  background: rgba(255,255,255,.06);
-}
-.pill:active{ transform: scale(.97); }
-
-.pill-primary{
-  background:#fff;
-  color:#0a0a0a;
-  border-color:#fff;
-}
-.pill-primary:hover{
-  background: #e9e9e6;
-  border-color:#e9e9e6;
-}
-
-.pill-lg{ padding:12px 24px; }
-.pill-sm{ padding:4px 12px; font-size:13px; }
-
-.dot{
-  display:inline-block;
-  width:5px; height:5px;
-  border-radius:50%;
-  background: var(--ink);
-  margin-right:8px;
-  vertical-align:middle;
-  animation: breathe 2.4s ease-in-out infinite;
-}
-.dot--live{ background:#7ee787; }
-@keyframes breathe{ 0%,100%{ opacity:.35; } 50%{ opacity:1; } }
-
-/* ============================================================
-   SCROLL PROGRESS
-   ============================================================ */
-#progress{
-  position:fixed;
-  top:0; left:0;
-  height:1px;
-  width:100%;
-  background:#fff;
-  transform: scaleX(0);
-  transform-origin: 0 50%;
-  z-index:300;
-  pointer-events:none;
-}
-
-/* ============================================================
-   NAV
-   ============================================================ */
-.nav{
-  position:fixed;
-  top:0; left:0; right:0;
-  z-index:200;
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:24px;
-  padding:14px 24px;
-  border-bottom:1px solid transparent;
-  transition: background .45s var(--ease), border-color .45s var(--ease),
-              backdrop-filter .45s var(--ease);
-}
-.nav.scrolled{
-  background: rgba(10,10,10,.72);
-  backdrop-filter: blur(16px) saturate(150%);
-  -webkit-backdrop-filter: blur(16px) saturate(150%);
-  border-bottom-color: var(--hairline);
-}
-.brand{
-  display:flex;
-  align-items:center;
-  gap:10px;
-  font-size:15px;
-  letter-spacing:.4px;
-  flex:none;
-}
-.brand-mark{ display:block; }
-.nav-links{
-  display:flex;
-  align-items:center;
-  gap:32px;
-  margin-left:auto;
-  margin-right:8px;
-}
-.nav-links a{
-  position:relative;
-  font-size:14px;
-  line-height:20px;
-  color:var(--body);
-  transition: color .3s var(--ease);
-}
-.nav-links a::after{
-  content:'';
-  position:absolute;
-  left:0; right:0; bottom:-5px;
-  height:1px;
-  background:#fff;
-  transform: scaleX(0);
-  transform-origin: left;
-  transition: transform .45s var(--ease);
-}
-.nav-links a:hover{ color:#fff; }
-.nav-links a:hover::after{ transform: scaleX(1); }
-
-.nav-right{ display:flex; align-items:center; gap:8px; }
-
-.kbd{
-  font-family: var(--mono);
-  font-size:12px;
-  letter-spacing:1px;
-  color: var(--mute);
-  border:1px solid var(--hairline);
-  border-radius:6px;
-  padding:2px 6px;
-  margin-left:2px;
-}
-
-/* ============================================================
-   HERO
-   ============================================================ */
-.hero{
-  position:relative;
-  min-height: 100vh;
-  min-height: 100dvh;
-  display:flex;
-  flex-direction:column;
-  justify-content:center;
-  padding: 150px 0 120px;
-  overflow:hidden;
-}
-#field{
-  position:absolute;
-  inset:0;
-  width:100%;
-  height:100%;
-  display:block;
-  pointer-events:none;
-}
-.hero-inner{ position:relative; z-index:2; }
-
-.hero-title{ margin-top:26px; }
-.hero-title .line{
-  display:block;
-  overflow:hidden;
-  padding-bottom:.08em;
-  margin-bottom:-.08em;
-}
-.hero-title .line > span{
-  display:block;
-  transform: translateY(115%);
-  transition: transform 1.15s var(--ease);
-}
-.hero-title .line:nth-child(1) > span{ transition-delay:.20s; }
-.hero-title .line:nth-child(2) > span{ transition-delay:.34s; }
-
-.hero-sub{
-  max-width: 560px;
-  margin-top: 30px;
-  font-size:18px;
-  line-height:28px;
-  color: var(--body);
-}
-.hero-cta{
-  display:flex;
-  flex-wrap:wrap;
-  gap:10px;
-  margin-top:38px;
-}
-
-.hero .eyebrow,
-.hero-sub,
-.hero-cta,
-.hero-meta{
-  opacity:0;
-  transform: translateY(14px);
-  transition: opacity .9s var(--ease), transform .9s var(--ease);
-}
-body.loaded .hero .eyebrow{ opacity:1; transform:none; transition-delay:.10s; }
-body.loaded .hero-sub{ opacity:1; transform:none; transition-delay:.60s; }
-body.loaded .hero-cta{ opacity:1; transform:none; transition-delay:.72s; }
-body.loaded .hero-meta{ opacity:1; transform:none; transition-delay:.88s; }
-body.loaded .hero-title .line > span{ transform: translateY(0); }
-
-.hero-meta{
-  position:absolute;
-  left:0; right:0; bottom:34px;
-  z-index:2;
-  display:flex;
-  justify-content:space-between;
-  gap:24px;
-  font-family: var(--mono);
-  font-size:12px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  color: var(--mute);
-  padding-inline: max(24px, calc((100vw - 1200px) / 2));
-}
-.hero-meta span{ display:flex; align-items:center; }
-
-/* ============================================================
-   MARQUEE
-   ============================================================ */
-.marquee{
-  border-top:1px solid var(--hairline);
-  border-bottom:1px solid var(--hairline);
-  overflow:hidden;
-  padding:16px 0;
-  background: var(--canvas);
-}
-.marquee-track{
-  display:flex;
-  width:max-content;
-  animation: marquee 46s linear infinite;
-}
-.marquee:hover .marquee-track{ animation-play-state: paused; }
-.marquee-track span{
-  padding:0 30px;
-  font-family: var(--mono);
-  font-size:12px;
-  letter-spacing:1.6px;
-  text-transform:uppercase;
-  color: var(--mute);
-  white-space:nowrap;
-  display:flex;
-  align-items:center;
-  gap:30px;
-}
-.marquee-track span::after{
-  content:'';
-  width:3px; height:3px;
-  border-radius:50%;
-  background: var(--canvas-mid);
-}
-@keyframes marquee{ to{ transform: translateX(-50%); } }
-
-/* ============================================================
-   BAND
-   ============================================================ */
-.band{
-  padding-block: clamp(64px, 9vw, 120px);
-  border-top:1px solid var(--hairline);
-}
-.band-head{
-  max-width: 760px;
-  margin-bottom: 56px;
-  display:flex;
-  flex-direction:column;
-  gap:20px;
-}
-
-/* ============================================================
-   STATS
-   ============================================================ */
-.stats{
-  display:grid;
-  grid-template-columns: repeat(4, 1fr);
-  border-top:1px solid var(--hairline);
-  border-bottom:1px solid var(--hairline);
-}
-.stat{
-  padding: 34px 24px;
-  border-left:1px solid var(--hairline);
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.stat:first-child{ border-left:none; padding-left:0; }
-.stat-num{
-  font-size: clamp(28px, 3.4vw, 42px);
-  line-height:1;
-  letter-spacing:-0.03em;
-  font-weight:400;
-  display:flex;
-  align-items:baseline;
-  gap:2px;
-}
-.stat-num .unit{ font-size:.5em; color:var(--mute); letter-spacing:0; }
-.stat-label{
-  font-family: var(--mono);
-  font-size:12px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  color:var(--mute);
-}
-
-/* ============================================================
-   CARDS
-   ============================================================ */
-.grid-2{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:16px;
-}
-.card{
-  position:relative;
-  background: var(--canvas-card);
-  border:1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  padding: 24px;
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  overflow:hidden;
-  transition: border-color .45s var(--ease), background .45s var(--ease);
-}
-.card::before{
-  content:'';
-  position:absolute;
-  inset:0;
-  background: radial-gradient(340px circle at var(--mx,50%) var(--my,50%),
-              rgba(255,255,255,.075), transparent 62%);
-  opacity:0;
-  transition: opacity .5s var(--ease);
-  pointer-events:none;
-}
-.card:hover{ border-color:#34383d; }
-.card:hover::before{ opacity:1; }
-
-.card-art{
-  height:150px;
-  border-radius: var(--radius-sm);
-  background: var(--canvas-soft);
-  border:1px solid var(--hairline);
-  display:grid;
-  place-items:center;
-  overflow:hidden;
-  position:relative;
-}
-.card-art svg{ width:100%; height:100%; display:block; }
-.card-title{ font-size:20px; line-height:28px; letter-spacing:-0.02em; font-weight:400; }
-.card-body{ font-size:14px; line-height:22px; color:var(--mute); }
-.card-link{ margin-top:auto; align-self:flex-start; }
-
-/* card art animations */
-.orbit{ transform-box: fill-box; transform-origin:center; animation: spin 9s linear infinite; }
-.card:hover .orbit{ animation-duration: 2.6s; }
-@keyframes spin{ to{ transform: rotate(360deg); } }
-
-.wave rect{
-  transform-box: fill-box;
-  transform-origin: center;
-  animation: wave 1.7s ease-in-out infinite;
-}
-.card:hover .wave rect{ animation-duration:.7s; }
-@keyframes wave{
-  0%,100%{ transform: scaleY(.3); }
-  50%    { transform: scaleY(1); }
-}
-
-.pulse{ animation: pulse 2.6s ease-in-out infinite; }
-.card:hover .pulse{ animation-duration:.9s; }
-@keyframes pulse{ 0%,100%{ opacity:.25; } 50%{ opacity:1; } }
-
-.travel{ animation: travel 3.4s ease-in-out infinite; }
-@keyframes travel{
-  0%,100%{ opacity:.15; }
-  45%,55%{ opacity:.9; }
-}
-
-/* ============================================================
-   COMPUTE PANEL
-   ============================================================ */
-.compute{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:56px;
-  align-items:start;
-}
-.bars{
-  display:flex;
-  align-items:flex-end;
-  gap:5px;
-  height:92px;
-  margin-bottom:28px;
-}
-.bars i{
-  flex:1;
-  background: var(--canvas-mid);
-  border-radius:1px;
-  transition: background .22s linear;
-  min-width:2px;
-}
-.bars i.on{ background:#fff; }
-
-.range{
-  -webkit-appearance:none;
-  appearance:none;
-  width:100%;
-  height:26px;
-  background: transparent;
-  cursor: pointer;
-  display:block;
-}
-.range::-webkit-slider-runnable-track{
-  height:1px;
-  background: linear-gradient(90deg, #fff 0%, #fff var(--p,42%), var(--canvas-mid) var(--p,42%), var(--canvas-mid) 100%);
-}
-.range::-webkit-slider-thumb{
-  -webkit-appearance:none;
-  width:14px; height:14px;
-  border-radius:50%;
-  background:#fff;
-  margin-top:-6.5px;
-  box-shadow: 0 0 0 0 rgba(255,255,255,.18);
-  transition: box-shadow .3s var(--ease);
-}
-.range:hover::-webkit-slider-thumb,
-.range:focus-visible::-webkit-slider-thumb{
-  box-shadow: 0 0 0 9px rgba(255,255,255,.09);
-}
-.range::-moz-range-track{ height:1px; background: var(--canvas-mid); }
-.range::-moz-range-progress{ height:1px; background:#fff; }
-.range::-moz-range-thumb{
-  width:14px; height:14px; border:none; border-radius:50%; background:#fff;
-}
-.range:focus{ outline:none; }
-
-.range-legend{
-  display:flex;
-  justify-content:space-between;
-  margin-top:10px;
-  font-family:var(--mono);
-  font-size:11px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  color: var(--mute);
-}
-
-.metrics{
-  display:grid;
-  grid-template-columns: 1fr 1fr;
-  gap:1px;
-  background: var(--hairline);
-  border:1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  overflow:hidden;
-}
-.metric{
-  background: var(--canvas-card);
-  padding: 22px 24px;
-  display:flex;
-  flex-direction:column;
-  gap:10px;
-}
-.metric-label{
-  font-family: var(--mono);
-  font-size:11px;
-  letter-spacing:1.3px;
-  text-transform:uppercase;
-  color: var(--mute);
-}
-.metric-value{
-  font-size: clamp(24px, 2.6vw, 32px);
-  line-height:1;
-  letter-spacing:-0.03em;
-}
-.metric-value .u{ color: var(--mute); font-size:.62em; letter-spacing:0; margin-left:2px; }
-
-/* ============================================================
-   TABLE
-   ============================================================ */
-.table-shell{
-  border:1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  overflow:hidden;
-  overflow-x:auto;
-}
-.spec-table{
-  width:100%;
-  border-collapse:collapse;
-  font-size:14px;
-  min-width: 640px;
-}
-.spec-table th{
-  font-family: var(--mono);
-  font-size:11px;
-  font-weight:400;
-  letter-spacing:1.3px;
-  text-transform:uppercase;
-  color: var(--mute);
-  text-align:left;
-  padding:13px 20px;
-  background: var(--canvas-soft);
-  border-bottom:1px solid var(--hairline);
-  cursor:pointer;
-  user-select:none;
-  white-space:nowrap;
-  transition: color .25s var(--ease), background .25s var(--ease);
-}
-.spec-table th:hover{ color:#fff; background:#202328; }
-.spec-table th.num{ text-align:right; }
-.spec-table th .arrow{
-  display:inline-block;
-  width:12px;
-  opacity:0;
-  transition: opacity .2s;
-  margin-left:4px;
-}
-.spec-table th.sorted .arrow{ opacity:1; color:#fff; }
-.spec-table th.sorted{ color:#fff; }
-
-.spec-table td{
-  padding:15px 20px;
-  border-bottom:1px solid var(--hairline);
-  color: var(--body);
-  white-space:nowrap;
-}
-.spec-table td.num{ text-align:right; font-variant-numeric: tabular-nums; }
-.spec-table tbody tr{
-  transition: background .25s var(--ease);
-  animation: rowIn .45s var(--ease) both;
-}
-.spec-table tbody tr:hover{ background: rgba(255,255,255,.035); }
-.spec-table tbody tr:last-child td{ border-bottom:none; }
-.spec-table .name{ color:#fff; }
-@keyframes rowIn{
-  from{ opacity:0; transform: translateY(6px); }
-  to{ opacity:1; transform:none; }
-}
-.badge{
-  display:inline-flex;
-  align-items:center;
-  gap:7px;
-  font-size:12px;
-  letter-spacing:.4px;
-  color: var(--body);
-}
-.badge i{
-  width:5px; height:5px; border-radius:50%;
-  background:#fff;
-  display:block;
-}
-.badge--preview i{ background: var(--sunset); }
-.badge--preview{ color: var(--sunset-soft); }
-
-/* ============================================================
-   PRICING
-   ============================================================ */
-.pricing-head{
-  display:flex;
-  align-items:flex-end;
-  justify-content:space-between;
-  gap:32px;
-  flex-wrap:wrap;
-  margin-bottom:48px;
-}
-.toggle{
-  display:inline-flex;
-  padding:3px;
-  border:1px solid var(--hairline);
-  border-radius: var(--pill);
-  background: var(--canvas-soft);
-  position:relative;
-}
-.toggle-btn{
-  position:relative;
-  z-index:2;
-  font-size:13px;
-  line-height:20px;
-  padding:6px 18px;
-  border-radius: var(--pill);
-  color: var(--mute);
-  transition: color .3s var(--ease);
-  white-space:nowrap;
-}
-.toggle-btn.active{ color:#0a0a0a; }
-.toggle-thumb{
-  position:absolute;
-  z-index:1;
-  top:3px; bottom:3px;
-  left:3px;
-  background:#fff;
-  border-radius: var(--pill);
-  transition: transform .45s var(--ease), width .45s var(--ease);
-}
-
-.price-grid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:16px;
-}
-.price-card{
-  border:1px solid var(--hairline);
-  border-radius: var(--radius-sm);
-  background: var(--canvas-card);
-  padding: 32px;
-  display:flex;
-  flex-direction:column;
-  gap:22px;
-  transition: border-color .4s var(--ease);
-}
-.price-card:hover{ border-color:#34383d; }
-.price-card.featured{
-  background: #fff;
-  color: #0a0a0a;
-  border-color:#fff;
-}
-.price-card.featured .eyebrow,
-.price-card.featured .price-desc,
-.price-card.featured .feat li{ color: #5a5d63; }
-.price-card.featured .eyebrow::before{ background:#0a0a0a; }
-.price-card.featured .price-num{ color:#0a0a0a; }
-.price-card.featured .feat li::before{ background:#0a0a0a; }
-
-.price{
-  display:flex;
-  align-items:baseline;
-  gap:6px;
-  margin-top:4px;
-}
-.price-num{
-  font-size: clamp(40px, 5vw, 56px);
-  line-height:1;
-  letter-spacing:-0.035em;
-}
-.price-cur{ font-size:22px; letter-spacing:-0.02em; }
-.price-per{ font-size:13px; color: var(--mute); letter-spacing:.2px; }
-.price-desc{ font-size:14px; line-height:22px; color: var(--mute); }
-
-.feat{ display:flex; flex-direction:column; gap:11px; font-size:14px; line-height:20px; }
-.feat li{
-  display:flex;
-  align-items:flex-start;
-  gap:10px;
-  color: var(--body);
-}
-.feat li::before{
-  content:'';
-  width:5px; height:5px;
-  margin-top:7px;
-  background:#fff;
-  border-radius:1px;
-  flex:none;
-}
-.price-card .pill{ align-self:flex-start; margin-top:auto; }
-.price-card.featured .pill{
-  background:#0a0a0a;
-  color:#fff;
-  border-color:#0a0a0a;
-}
-.price-card.featured .pill:hover{ background:#232323; border-color:#232323; }
-
-/* ============================================================
-   CTA
-   ============================================================ */
-.cta-band{
-  position:relative;
-  overflow:hidden;
-  border-top:none;
-}
-.cta-band::before{
-  content:'';
-  position:absolute;
-  top:0; left:0; right:0;
-  height:1px;
-  background: linear-gradient(90deg, transparent, var(--sunset) 30%, var(--dusk) 70%, transparent);
-  opacity:.85;
-}
-.cta-band::after{
-  content:'';
-  position:absolute;
-  left:50%; top:-160px;
-  width:900px; height:420px;
-  transform: translateX(-50%);
-  background: radial-gradient(closest-side, rgba(124,58,237,.13), transparent 72%);
-  pointer-events:none;
-}
-.cta-inner{
-  position:relative;
-  z-index:1;
-  display:flex;
-  flex-direction:column;
-  align-items:flex-start;
-  gap:22px;
-  max-width: 820px;
-}
-
-/* ============================================================
-   FOOTER
-   ============================================================ */
-.footer{
-  border-top:1px solid var(--hairline);
-  padding: 64px 0 40px;
-}
-.footer-grid{
-  display:grid;
-  grid-template-columns: 1.6fr repeat(3, 1fr);
-  gap:40px;
-}
-.footer-brand{
-  display:flex;
-  flex-direction:column;
-  gap:16px;
-  max-width:280px;
-}
-.footer-brand p{ font-size:14px; line-height:22px; color: var(--mute); }
-.footer-col h4{
-  font-family: var(--mono);
-  font-size:11px;
-  letter-spacing:1.3px;
-  text-transform:uppercase;
-  color: var(--mute);
-  font-weight:400;
-  margin-bottom:18px;
-}
-.footer-col a{
-  display:block;
-  font-size:14px;
-  line-height:20px;
-  color: var(--body);
-  padding:7px 0;
-  transition: color .25s var(--ease), transform .25s var(--ease);
-}
-.footer-col a:hover{ color:#fff; transform: translateX(3px); }
-
-.footer-bottom{
-  margin-top:56px;
-  padding-top:24px;
-  border-top:1px solid var(--hairline);
-  display:flex;
-  justify-content:space-between;
-  gap:24px;
-  flex-wrap:wrap;
-  font-family: var(--mono);
-  font-size:11px;
-  letter-spacing:1.3px;
-  text-transform:uppercase;
-  color: var(--mute);
-}
-
-/* ============================================================
-   COMMAND PALETTE
-   ============================================================ */
-.cmdk{
-  position:fixed;
-  inset:0;
-  z-index:400;
-  display:flex;
-  align-items:flex-start;
-  justify-content:center;
-  padding-top: 16vh;
-  opacity:0;
-  pointer-events:none;
-  transition: opacity .25s var(--ease);
-}
-.cmdk.open{ opacity:1; pointer-events:auto; }
-.cmdk-backdrop{
-  position:absolute;
-  inset:0;
-  background: rgba(0,0,0,.66);
-  backdrop-filter: blur(6px);
-  -webkit-backdrop-filter: blur(6px);
-}
-.cmdk-panel{
-  position:relative;
-  width: min(560px, calc(100% - 40px));
-  background: #131313;
-  border:1px solid #2a2d31;
-  border-radius: var(--radius-sm);
-  overflow:hidden;
-  transform: translateY(-10px) scale(.985);
-  transition: transform .3s var(--ease);
-  box-shadow: 0 24px 80px rgba(0,0,0,.7);
-}
-.cmdk.open .cmdk-panel{ transform:none; }
-.cmdk-input{
-  width:100%;
-  background: transparent;
-  border:none;
-  border-bottom:1px solid var(--hairline);
-  color:#fff;
-  font-family: var(--font);
-  font-size:15px;
-  padding: 18px 20px;
-  outline:none;
-}
-.cmdk-input::placeholder{ color: var(--mute); }
-.cmdk-list{ max-height: 320px; overflow-y:auto; padding:8px; }
-.cmdk-item{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:16px;
-  padding: 11px 14px;
-  border-radius: 6px;
-  cursor:pointer;
-  transition: background .15s;
-}
-.cmdk-item .t{ font-size:14px; color:#fff; }
-.cmdk-item .d{
-  font-family: var(--mono);
-  font-size:11px;
-  letter-spacing:1.1px;
-  text-transform:uppercase;
-  color: var(--mute);
-}
-.cmdk-item.active{ background: rgba(255,255,255,.07); }
-.cmdk-empty{
-  padding: 28px 20px;
-  text-align:center;
-  font-family: var(--mono);
-  font-size:12px;
-  letter-spacing:1.2px;
-  text-transform:uppercase;
-  color: var(--mute);
-}
-
-/* ============================================================
-   REVEAL
-   ============================================================ */
-.reveal{
-  opacity:0;
-  transform: translateY(18px);
-  transition: opacity .85s var(--ease), transform .85s var(--ease);
-  transition-delay: var(--d, 0ms);
-}
-.reveal.in{ opacity:1; transform:none; }
-
-/* ============================================================
-   RESPONSIVE
-   ============================================================ */
-@media (max-width: 960px){
-  .compute{ grid-template-columns: 1fr; gap:40px; }
-  .footer-grid{ grid-template-columns: 1fr 1fr; gap:36px; }
-  .footer-brand{ grid-column: 1 / -1; max-width:none; }
-}
-
-@media (max-width: 820px){
-  .nav-links{ display:none; }
-  .grid-2{ grid-template-columns: 1fr; }
-  .stats{ grid-template-columns: 1fr 1fr; }
-  .stat{ border-left:none; padding:26px 0; border-top:1px solid var(--hairline); }
-  .stat:nth-child(odd){ padding-right:20px; }
-  .stat:nth-child(even){ padding-left:20px; border-left:1px solid var(--hairline); }
-  .stat:nth-child(1), .stat:nth-child(2){ border-top:none; }
-  .price-grid{ grid-template-columns: 1fr; }
-  .hero-meta span:nth-child(2){ display:none; }
-  .wrap{ width: calc(100% - 32px); }
-}
-
-@media (max-width: 560px){
-  .hero{ padding-top:120px; padding-bottom:110px; }
-  .hero-meta{ flex-direction:column; gap:8px; bottom:24px; }
-  .hero-meta span:nth-child(3){ display:none; }
-  .metrics{ grid-template-columns: 1fr; }
-  .footer-grid{ grid-template-columns: 1fr 1fr; }
-  .stat-num{ font-size:26px; }
-  .price-card{ padding:24px; }
-  .band-head{ margin-bottom:36px; }
-}
-
-@media (prefers-reduced-motion: reduce){
-  *,*::before,*::after{
-    animation-duration:.001ms !important;
-    animation-iteration-count:1 !important;
-    transition-duration:.001ms !important;
+  /* ================= 基础 ================= */
+  *{box-sizing:border-box;}
+  html,body{margin:0;padding:0;}
+  body{
+    background:#000;
+    color:#e8e8e8;
+    font-family:"Courier New",ui-monospace,SFMono-Regular,Consolas,Menlo,monospace;
+    font-size:15px;
+    line-height:1.85;
+    min-height:100vh;
+    overflow-x:hidden;
+    -webkit-font-smoothing:antialiased;
   }
-  html{ scroll-behavior:auto; }
-}
+
+  /* 极微弱的扫描线 */
+  body::before{
+    content:"";position:fixed;inset:0;z-index:9990;pointer-events:none;
+    background:repeating-linear-gradient(180deg,
+      rgba(255,255,255,.020) 0px, rgba(255,255,255,.020) 1px,
+      transparent 1px, transparent 3px);
+  }
+
+  #app{
+    position:relative;z-index:1;
+    min-height:100vh;
+    display:flex;justify-content:center;align-items:flex-start;
+  }
+
+  .screen{
+    display:none;
+    width:100%;max-width:820px;
+    padding:10vh 24px 14vh;
+  }
+  .screen.active{display:block;animation:fadeUp .55s cubic-bezier(.2,.8,.2,1) both;}
+  
+  @keyframes fadeUp{
+    from{opacity:0;transform:translateY(10px);}
+    to{opacity:1;transform:none;}
+  }
+
+  body.glitch #app{animation:glitch .4s steps(2);}
+  @keyframes glitch{
+    0%{transform:translate(0);}
+    20%{transform:translate(-3px,1px);}
+    40%{transform:translate(3px,-1px);}
+    60%{transform:translate(-2px,-1px);}
+    80%{transform:translate(2px,1px);}
+    100%{transform:translate(0);}
+  }
+
+  /* ================= 通用组件 ================= */
+  .tag{
+    font-size:11px;letter-spacing:.42em;color:#5a5a5a;
+    text-transform:uppercase;margin-bottom:26px;
+  }
+  .hr{height:1px;background:#1e1e1e;margin:28px 0;}
+
+  .btn{
+    appearance:none;
+    border:1px solid #fff;background:transparent;color:#fff;
+    font:inherit;font-size:13px;letter-spacing:.22em;
+    padding:12px 30px;border-radius:0;cursor:pointer;
+    text-transform:uppercase;
+    transition:background .18s,color .18s,opacity .2s;
+  }
+  .btn:hover:not(:disabled){background:#fff;color:#000;}
+  .btn:disabled{opacity:.28;cursor:not-allowed;}
+  .btn.ghost{border-color:#3a3a3a;color:#8a8a8a;}
+  .btn.ghost:hover{background:#fff;color:#000;border-color:#fff;}
+  .btn-row{display:flex;gap:14px;flex-wrap:wrap;margin-top:10px;}
+
+  /* ================= 1. 警告页 ================= */
+  .warn-title{
+    font-size:22px;font-weight:400;letter-spacing:.10em;
+    margin:0 0 30px;color:#fff;
+  }
+  .warn p{margin:0 0 1.15em;color:#bdbdbd;}
+  .warn strong{color:#fff;font-weight:400;border-bottom:1px solid #444;}
+  .ask{color:#fff !important;letter-spacing:.06em;margin-top:6px !important;}
+  .drift-note{
+    margin-top:24px;font-size:12px;color:#7a7a7a;
+    letter-spacing:.08em;min-height:1.5em;
+  }
+
+  /* ================= 2. 疫苗页 ================= */
+  .lead{color:#969696;font-size:13px;line-height:1.95;margin:0 0 30px;}
+  
+  .inoc{margin:50px 0 30px;}
+  .inoc-bar{height:2px;background:#1a1a1a;position:relative;overflow:hidden;width:100%;}
+  .inoc-bar i{position:absolute;left:0;top:0;height:100%;width:0;background:#fff;transition:width .1s linear;}
+  .inoc-status{font-size:12px;color:#777;letter-spacing:.16em;margin-top:12px;}
+  .inoc-status.done{color:#fff;}
+
+  #btn-agree{display:none;}
+  #btn-agree.show{display:inline-block;animation:fadeUp .5s both;}
+
+  /* ================= 3. 极简加载页 ================= */
+  #s-loading{
+    height: 100vh; display: none; flex-direction: column; justify-content: center; align-items: center; padding: 0;
+  }
+  #s-loading.active { display: flex; }
+  
+  .loading-center { width: 100%; max-width: 320px; text-align: center; }
+  .load-bar{height:2px;background:#1a1a1a;position:relative;overflow:hidden;width:100%; margin-bottom: 20px;}
+  .load-bar i{position:absolute;left:0;top:0;height:100%;width:0;background:#fff;transition:width .1s linear;}
+  .load-pct{font-size: 14px; letter-spacing:.22em; color:#fff; font-variant-numeric:tabular-nums;}
+
+  /* ================= 4. 登入页 ================= */
+  #s-gate {
+    height: 100vh; display: none; justify-content: center; align-items: center; padding: 0;
+  }
+  #s-gate.active { display: flex; }
+  
+  .gate-wrap { display: flex; flex-direction: column; align-items: center; text-align: center; width: 100%; }
+  .gate-visual { width: 240px; margin-bottom: 20px; }
+  .gate-avatar{
+    width:70px;height:70px;border:1px solid #2e2e2e;background:#050505;
+    display:grid;place-items:center;overflow:hidden;margin-bottom: 20px;
+  }
+  .gate-name{font-size:16px;letter-spacing:.14em;color:#fff;}
+  .gate-id{font-size:11.5px;letter-spacing:.16em;color:#5f5f5f;margin-top:10px;}
+  .gate-sep{width:1px;height:34px;background:#232323;margin:30px 0;}
+
+  .svg-container svg { display: block; width: 100%; height: auto; }
+
+  /* ================= 5. 终端页 ================= */
+  #s-terminal{max-width:820px; padding-top: 10vh;}
+  .terminal{font-size:13.5px;line-height:2;color:#cfcfcf; transition: opacity 0.8s ease, transform 0.8s ease;}
+  .terminal .line{white-space:pre-wrap;word-break:break-word;}
+  .terminal .line.dim{color:#6a6a6a;}
+  .terminal .line.ok{color:#fff;}
+  .terminal .line.warn{color:#c9c9c9;}
+  .terminal .line.hl{color:#fff;border-left:2px solid #fff;padding-left:14px;margin:6px 0;letter-spacing:.04em;}
+  
+  .term-moirai{width:240px;margin:24px 0;}
+
+  /* ================= 居中扰动率过渡面板 ================= */
+  #perturb-panel{
+    position: fixed; top: 50%; left: 50%;
+    transform: translate(-50%, 50vh);
+    width: 100%; height: 100vh; background: #000;
+    display: flex; flex-direction: column; justify-content: center; align-items: center;
+    opacity: 0; pointer-events: none; z-index: 100;
+    transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1), opacity 0.5s ease, background 0.8s ease, top 0.8s cubic-bezier(0.16, 1, 0.3, 1), height 0.8s ease;
+  }
+  
+  #perturb-panel.show {
+    opacity: 1; pointer-events: auto;
+    transform: translate(-50%, -50%);
+  }
+  
+  /* 平滑移动到顶部 */
+  #perturb-panel.dock-top {
+    top: 12vh; 
+    transform: translate(-50%, 0);
+    background: transparent;
+    height: auto;
+    pointer-events: none;
+  }
+  
+  .perturb-label{font-size:11px;letter-spacing:.42em;color:#5a5a5a;margin-bottom:16px;}
+  .perturb{
+    font-size:42px;letter-spacing:.06em;color:#fff;
+    font-variant-numeric:tabular-nums; transition:color .3s;
+  }
+  .perturb.locked{text-shadow:0 0 25px rgba(255,255,255,.4);}
+
+  /* ================= 6. 故事正文（SCP 风格） ================= */
+  #story{display:none;max-width:760px;margin:0 auto;padding-bottom: 15vh;}
+  
+  /* 停靠在正文顶部的扰动率块 */
+  #perturb-inline {
+    text-align: center; 
+    margin-bottom: 56px; 
+    opacity: 0; 
+    transition: opacity 0.5s ease;
+    padding-top: 5vh;
+  }
+  #perturb-inline .perturb-label { font-size:11px;letter-spacing:.42em;color:#5a5a5a;margin-bottom:12px; }
+  #perturb-inline .perturb { font-size:32px;letter-spacing:.06em;color:#fff;font-variant-numeric:tabular-nums; text-shadow:0 0 15px rgba(255,255,255,.2); }
+
+  .grab-header {
+    color: #888;
+    font-size: 14px;
+    margin: 40px 0 24px;
+    text-align: center;
+    letter-spacing: 0.1em;
+    word-break: break-word;
+  }
+
+  .doc-container {
+    background: #111;
+    border: 1px solid #333;
+    margin-bottom: 32px;
+    box-shadow: 0 4px 20px rgba(0,0,0,0.5);
+    word-break: break-word;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  }
+
+  .doc-path-bar {
+    background: #1a1a1a;
+    border-bottom: 1px solid #333;
+    padding: 8px 16px;
+    color: #888;
+    font-size: 12.5px;
+    font-family: monospace;
+    letter-spacing: 0.05em;
+    word-break: break-all;
+  }
+
+  .doc-meta-grid {
+    display: flex;
+    gap: 12px;
+    padding: 16px;
+    border-bottom: 1px solid #222;
+  }
+  
+  .meta-box {
+    flex: 1;
+    border: 1px solid #444;
+    display: flex;
+    align-items: center;
+    padding: 8px 12px;
+    font-size: 13.5px;
+  }
+  
+  .meta-key {
+    color: #aaa;
+    margin-right: 12px;
+    white-space: nowrap;
+  }
+  
+  .meta-val {
+    color: #fff;
+    font-family: monospace;
+    margin-left: auto;
+    letter-spacing: 0.05em;
+  }
+
+  .doc-content {
+    padding: 16px 24px 32px;
+  }
+
+  .section-title {
+    display: flex;
+    align-items: center;
+    color: #fff;
+    font-size: 18px;
+    font-weight: bold;
+    margin: 32px 0 24px;
+    letter-spacing: 0.1em;
+    text-align: center;
+  }
+  .section-title::before, .section-title::after {
+    content: "";
+    flex: 1;
+    height: 1px;
+    background: #444;
+  }
+  .section-title::before { margin-right: 16px; }
+  .section-title::after { margin-left: 16px; }
+
+  .doc-text {
+    color: #d1d1d1;
+    line-height: 1.85;
+    font-size: 15px;
+  }
+  .doc-text p { 
+    margin-bottom: 20px; 
+    text-indent: 2em; 
+  }
+  .doc-text p.no-indent { 
+    text-indent: 0; 
+  }
+  
+  .highlight-red { color: #ff4a4a; font-family: monospace; }
+  .highlight-dim { color: #888; font-family: monospace; }
+  
+  .action-desc {
+    color: #999;
+    font-style: italic;
+    margin: 24px 0;
+    text-indent: 0;
+  }
+
+  #story [data-anim]{
+    opacity:0;transform:translateY(10px);
+    transition:opacity .7s ease,transform .7s ease;
+  }
+  #story [data-anim].in{opacity:1;transform:none;}
+
+  /* ================= 移动端适配 ================= */
+  @media (max-width:640px){
+    body{font-size:14px;}
+    .screen{padding:8vh 16px;}
+    .perturb{font-size:32px;}
+    .gate-visual{width:170px;}
+    .term-moirai{width:180px;}
+    #perturb-panel.dock-top { top: 8vh; }
+    #perturb-inline { padding-top: 8vh; margin-bottom: 40px; }
+    #perturb-inline .perturb { font-size: 28px; }
+    
+    .doc-content { padding: 12px 16px 24px; }
+    .doc-meta-grid { flex-direction: column; gap: 8px; padding: 12px; }
+    .meta-box { padding: 8px 10px; font-size: 13px; }
+    .doc-text { font-size: 14px; }
+    .section-title { font-size: 16px; margin: 24px 0 16px; }
+  }
 </style>
 </head>
 <body>
 
-<div id="progress" aria-hidden="true"></div>
+<main id="app">
 
-<!-- ==================== NAV ==================== -->
-<header class="nav" id="nav">
-  <a class="brand" href="#top" aria-label="xAI 首页">
-    <svg class="brand-mark" width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-      <path d="M1.2 16.8 L11 1.2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-      <path d="M6.8 1.2 L16.8 16.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-    </svg>
-    <span>xAI</span>
-  </a>
-
-  <nav class="nav-links" aria-label="主导航">
-    <a href="#capabilities">能力</a>
-    <a href="#compute">规模</a>
-    <a href="#models">模型</a>
-    <a href="#pricing">定价</a>
-  </nav>
-
-  <div class="nav-right">
-    <button class="pill pill-sm" id="cmdBtn" aria-label="打开命令面板">
-      <span>搜索</span>
-      <span class="kbd">⌘K</span>
-    </button>
-    <a href="#pricing" class="pill pill-primary pill-sm">注册</a>
-  </div>
-</header>
-
-<main>
-
-  <!-- ==================== HERO ==================== -->
-  <section class="hero" id="top">
-    <canvas id="field" aria-hidden="true"></canvas>
-
-    <div class="wrap hero-inner">
-      <p class="eyebrow">FRONTIER AI SYSTEMS — EST. 2023</p>
-
-      <h1 class="display-xl hero-title">
-        <span class="line"><span>理解宇宙的</span></span>
-        <span class="line"><span>真实本质。</span></span>
-      </h1>
-
-      <p class="hero-sub">
-        构建能够推理、编码与对话的通用人工智能系统。
-        从第一性原理出发，重新设计训练与推理的每一层。
-      </p>
-
-      <div class="hero-cta">
-        <a href="#pricing" class="pill pill-primary pill-lg magnetic">开始使用</a>
-        <a href="#capabilities" class="pill pill-lg magnetic">阅读公告</a>
+  <!-- ========== 屏幕 1：警告 ========== -->
+  <section class="screen active" id="s-warning">
+    <div class="warn">
+      <div class="tag">超形上学部 / 叙事权限提示</div>
+      <h1 class="warn-title">来自超形上学部的警告</h1>
+      <p>你将要阅读的文件包含一具<strong>双向叙事层指针</strong>，可能会以多种方式间接影响对你目前页面的叙述事实。</p>
+      <p>为确保该指针在加载、阅读与卸载期间保持锚定，本文件会在后续请求多个叙述权限。</p>
+      <p>拒绝授权不会阻止你阅读基础文件，但可能导致叙述事实出现偏移。</p>
+      <div class="hr"></div>
+      <p class="ask">你确定要继续吗？</p>
+      <div class="btn-row">
+        <button class="btn" id="btn-continue">继续</button>
+        <button class="btn ghost" id="btn-refuse">拒绝</button>
       </div>
-    </div>
-
-    <div class="hero-meta">
-      <span><i class="dot dot--live"></i>STATUS · TRAINING</span>
-      <span>CLUSTER · 200K H100</span>
-      <span>MEMPHIS · 34.7°N 90.0°W</span>
+      <p class="drift-note" id="drift-note"></p>
     </div>
   </section>
 
-  <!-- ==================== MARQUEE ==================== -->
-  <div class="marquee" aria-hidden="true">
-    <div class="marquee-track" id="marqueeTrack">
-      <span>REASONING</span><span>MULTIMODAL</span><span>AGENTIC TOOL USE</span>
-      <span>2M CONTEXT</span><span>REAL-TIME VOICE</span><span>OPEN WEIGHTS</span>
-      <span>FIRST PRINCIPLES</span><span>MAXIMUM TRUTH-SEEKING</span>
-    </div>
-  </div>
+  <!-- ========== 屏幕 2：文字模因疫苗 ========== -->
+  <section class="screen" id="s-vaccine">
+    <div class="tag">Memetic Inoculation / 文字模因疫苗</div>
+    <h2 class="warn-title" style="font-size:19px;">接种程序</h2>
+    <p class="lead">
+      本作品包含 Meta 元素，会读取您目前的网络层信息、浏览器与系统特征、硬件与渲染指纹等信息。
+      这是一个纯粹的前端网页 —— 数据仅在本页面内存中被读取，<strong style="color:#fff;font-weight:400;">不会以任何方式上传到其他位置</strong>。
+      后续可能会出现需要的权限申请，请尽量进行同意。
+    </p>
 
-  <!-- ==================== STATS ==================== -->
-  <section class="wrap" aria-label="关键指标">
-    <div class="stats">
-      <div class="stat reveal" style="--d:0ms">
-        <div class="stat-num">
-          <span data-count="200" data-suffix="K">0</span>
-        </div>
-        <div class="stat-label">GPU 集群</div>
-      </div>
-      <div class="stat reveal" style="--d:80ms">
-        <div class="stat-num">
-          <span data-count="300" data-suffix="+">0</span>
-        </div>
-        <div class="stat-label">研究工程师</div>
-      </div>
-      <div class="stat reveal" style="--d:160ms">
-        <div class="stat-num">
-          <span data-count="2" data-decimals="0">0</span><span class="unit">M</span>
-        </div>
-        <div class="stat-label">上下文窗口</div>
-      </div>
-      <div class="stat reveal" style="--d:240ms">
-        <div class="stat-num">
-          <span data-count="99.99" data-decimals="2" data-suffix="%">0</span>
-        </div>
-        <div class="stat-label">推理可用性</div>
-      </div>
+    <div class="inoc">
+      <div class="inoc-bar"><i id="inoc-fill"></i></div>
+      <div class="inoc-status" id="inoc-status">等待接种……</div>
+    </div>
+
+    <button class="btn" id="btn-agree" disabled>同意并继续</button>
+  </section>
+
+  <!-- ========== 屏幕 3：极简加载 ========== -->
+  <section class="screen" id="s-loading">
+    <div class="loading-center">
+      <div class="load-bar"><i id="load-fill"></i></div>
+      <div class="load-pct" id="load-pct">0%</div>
     </div>
   </section>
 
-  <!-- ==================== CAPABILITIES ==================== -->
-  <section class="band" id="capabilities">
-    <div class="wrap">
-      <div class="band-head">
-        <p class="eyebrow reveal">CAPABILITIES</p>
-        <h2 class="display-md reveal" style="--d:80ms">四个系统，一个目标。</h2>
-        <p class="body-lg reveal" style="--d:140ms">
-          我们不在既有架构上做增量优化。每一层——注意力、调度、工具调用——
-          都从零重新推导。
-        </p>
-      </div>
-
-      <div class="grid-2">
-
-        <!-- Card 1 -->
-        <article class="card reveal" style="--d:0ms">
-          <div class="card-art">
-            <svg viewBox="0 0 200 150" fill="none" aria-hidden="true">
-              <g stroke="rgba(255,255,255,.18)" stroke-width="1">
-                <circle cx="100" cy="75" r="18"/>
-                <circle cx="100" cy="75" r="32"/>
-                <circle cx="100" cy="75" r="46"/>
-                <circle cx="100" cy="75" r="60"/>
-              </g>
-              <circle cx="100" cy="75" r="3.5" fill="#fff"/>
-              <g class="orbit">
-                <circle cx="146" cy="75" r="3" fill="#ff7a17"/>
-              </g>
-              <g class="orbit" style="animation-duration:14s; animation-direction:reverse;">
-                <circle cx="100" cy="43" r="2.4" fill="#c4b5fd"/>
-              </g>
-            </svg>
-          </div>
-          <p class="eyebrow">GROK · REASONING</p>
-          <h3 class="card-title">通用推理</h3>
-          <p class="card-body">
-            在数学、代码与科学推理基准上达到前沿水平。长链思考可被检查、可被中断、可被修正。
-          </p>
-          <a href="#models" class="pill pill-sm card-link">了解更多</a>
-        </article>
-
-        <!-- Card 2 -->
-        <article class="card reveal" style="--d:80ms">
-          <div class="card-art">
-            <svg viewBox="0 0 200 150" fill="none" aria-hidden="true">
-              <g class="wave" fill="#fff">
-                <rect x="30"  y="55" width="3" height="40" rx="1.5" style="animation-delay:0s"/>
-                <rect x="40"  y="42" width="3" height="66" rx="1.5" style="animation-delay:.08s"/>
-                <rect x="50"  y="58" width="3" height="34" rx="1.5" style="animation-delay:.16s"/>
-                <rect x="60"  y="34" width="3" height="82" rx="1.5" style="animation-delay:.24s"/>
-                <rect x="70"  y="50" width="3" height="50" rx="1.5" style="animation-delay:.32s"/>
-                <rect x="80"  y="28" width="3" height="94" rx="1.5" style="animation-delay:.40s"/>
-                <rect x="90"  y="46" width="3" height="58" rx="1.5" style="animation-delay:.48s"/>
-                <rect x="100" y="36" width="3" height="78" rx="1.5" style="animation-delay:.56s"/>
-                <rect x="110" y="54" width="3" height="42" rx="1.5" style="animation-delay:.64s"/>
-                <rect x="120" y="30" width="3" height="90" rx="1.5" style="animation-delay:.72s"/>
-                <rect x="130" y="48" width="3" height="54" rx="1.5" style="animation-delay:.80s"/>
-                <rect x="140" y="40" width="3" height="70" rx="1.5" style="animation-delay:.88s"/>
-                <rect x="150" y="60" width="3" height="30" rx="1.5" style="animation-delay:.96s"/>
-                <rect x="160" y="52" width="3" height="46" rx="1.5" style="animation-delay:1.04s"/>
-                <rect x="170" y="62" width="3" height="26" rx="1.5" style="animation-delay:1.12s"/>
-              </g>
-              <line x1="24" y1="75" x2="176" y2="75" stroke="rgba(160,195,236,.35)" stroke-width="1"/>
-            </svg>
-          </div>
-          <p class="eyebrow">VOICE · REAL-TIME</p>
-          <h3 class="card-title">实时语音</h3>
-          <p class="card-body">
-            端到端语音模型，延迟压到 200 毫秒以内。可以被打断，可以听懂语气，可以同时说与听。
-          </p>
-          <a href="#models" class="pill pill-sm card-link">了解更多</a>
-        </article>
-
-        <!-- Card 3 -->
-        <article class="card reveal" style="--d:160ms">
-          <div class="card-art">
-            <svg viewBox="0 0 200 150" fill="none" aria-hidden="true">
-              <g stroke="rgba(255,255,255,.16)" stroke-width="1">
-                <line x1="50" y1="42" x2="100" y2="75"/>
-                <line x1="50" y1="108" x2="100" y2="75"/>
-                <line x1="150" y1="42" x2="100" y2="75"/>
-                <line x1="150" y1="108" x2="100" y2="75"/>
-                <line x1="50" y1="42" x2="150" y2="42"/>
-                <line x1="50" y1="108" x2="150" y2="108"/>
-              </g>
-              <circle cx="50"  cy="42"  r="4" fill="#fff" opacity=".55"/>
-              <circle cx="50"  cy="108" r="4" fill="#fff" opacity=".55"/>
-              <circle cx="150" cy="42"  r="4" fill="#a0c3ec" opacity=".85"/>
-              <circle cx="150" cy="108" r="4" fill="#fff" opacity=".55"/>
-              <circle cx="100" cy="75"  r="6" fill="#fff"/>
-              <circle cx="100" cy="75"  r="13" stroke="rgba(255,255,255,.3)" stroke-width="1"/>
-            </svg>
-          </div>
-          <p class="eyebrow">API · AGENTIC</p>
-          <h3 class="card-title">工具与代理</h3>
-          <p class="card-body">
-            原生函数调用、并行工具执行与状态化会话。一个请求可以是一个完整的任务。
-          </p>
-          <a href="#models" class="pill pill-sm card-link">了解更多</a>
-        </article>
-
-        <!-- Card 4 -->
-        <article class="card reveal" style="--d:240ms">
-          <div class="card-art">
-            <svg viewBox="0 0 200 150" fill="none" aria-hidden="true">
-              <g stroke="rgba(255,255,255,.14)" stroke-width="1">
-                <rect x="38"  y="26" width="26" height="26" rx="2"/>
-                <rect x="72"  y="26" width="26" height="26" rx="2"/>
-                <rect x="106" y="26" width="26" height="26" rx="2"/>
-                <rect x="140" y="26" width="26" height="26" rx="2"/>
-
-                <rect x="38"  y="60" width="26" height="26" rx="2"/>
-                <rect x="72"  y="60" width="26" height="26" rx="2"/>
-                <rect x="106" y="60" width="26" height="26" rx="2"/>
-                <rect x="140" y="60" width="26" height="26" rx="2"/>
-
-                <rect x="38"  y="94" width="26" height="26" rx="2"/>
-                <rect x="72"  y="94" width="26" height="26" rx="2"/>
-                <rect x="106" y="94" width="26" height="26" rx="2"/>
-                <rect x="140" y="94" width="26" height="26" rx="2"/>
-              </g>
-              <rect class="pulse" x="72"  y="60" width="26" height="26" rx="2" fill="#7c3aed" style="animation-delay:0s"/>
-              <rect class="pulse" x="140" y="94" width="26" height="26" rx="2" fill="#ff7a17" style="animation-delay:.6s"/>
-              <rect class="pulse" x="38"  y="94" width="26" height="26" rx="2" fill="#a0c3ec" style="animation-delay:1.2s"/>
-            </svg>
-          </div>
-          <p class="eyebrow">CLUSTER · TRAINING</p>
-          <h3 class="card-title">训练基础设施</h3>
-          <p class="card-body">
-            十万卡级液冷集群，自研调度与容错栈。一次训练任务的失败恢复时间低于 90 秒。
-          </p>
-          <a href="#compute" class="pill pill-sm card-link">了解更多</a>
-        </article>
-
-      </div>
+  <!-- ========== 屏幕 4：登入 ========== -->
+  <section class="screen" id="s-gate">
+    <div class="gate-wrap">
+      <div class="gate-visual svg-container" id="gate-visual"></div>
+      <div class="gate-avatar svg-container" id="gate-avatar"></div>
+      <div class="gate-name" id="gate-name">……</div>
+      <div class="gate-id" id="gate-id">……</div>
+      <div class="gate-sep"></div>
+      <button class="btn" id="btn-login">登入</button>
     </div>
   </section>
 
-  <!-- ==================== COMPUTE ==================== -->
-  <section class="band" id="compute">
-    <div class="wrap">
-      <div class="band-head">
-        <p class="eyebrow reveal">COMPUTE SCALE</p>
-        <h2 class="display-md reveal" style="--d:80ms">拖动，观察规模的代价。</h2>
-        <p class="body-lg reveal" style="--d:140ms">
-          参数、上下文与延迟之间不存在免费的午餐。滑动下方控制器，
-          实时查看不同配置下的系统表现。
-        </p>
-      </div>
-
-      <div class="compute">
-        <div class="reveal">
-          <div class="bars" id="bars" aria-hidden="true"></div>
-          <input
-            class="range"
-            id="scaleRange"
-            type="range"
-            min="0" max="100" value="42" step="1"
-            aria-label="调整算力规模"
-          />
-          <div class="range-legend">
-            <span>10^22 FLOPs</span>
-            <span>10^26 FLOPs</span>
-          </div>
-        </div>
-
-        <div class="metrics reveal" style="--d:120ms">
-          <div class="metric">
-            <span class="metric-label">PARAMETERS</span>
-            <span class="metric-value" id="mParams">0<span class="u">B</span></span>
-          </div>
-          <div class="metric">
-            <span class="metric-label">CONTEXT</span>
-            <span class="metric-value" id="mCtx">0<span class="u">K</span></span>
-          </div>
-          <div class="metric">
-            <span class="metric-label">FIRST TOKEN</span>
-            <span class="metric-value" id="mLat">0<span class="u">ms</span></span>
-          </div>
-          <div class="metric">
-            <span class="metric-label">THROUGHPUT</span>
-            <span class="metric-value" id="mThrough">0<span class="u">tok/s</span></span>
-          </div>
-        </div>
-      </div>
-    </div>
+  <!-- ========== 屏幕 5：终端 ========== -->
+  <section class="screen" id="s-terminal">
+    <div class="terminal" id="term"></div>
   </section>
 
-  <!-- ==================== MODELS ==================== -->
-  <section class="band" id="models">
-    <div class="wrap">
-      <div class="band-head">
-        <p class="eyebrow reveal">MODEL LINEUP</p>
-        <h2 class="display-md reveal" style="--d:80ms">当前可用的模型。</h2>
-        <p class="body-lg reveal" style="--d:140ms">
-          点击表头按任意指标排序。所有数字为公开基准下的中位数表现。
-        </p>
+  <!-- ========== 屏幕 6：故事正文 ========== -->
+  <section class="screen" id="s-story">
+    <article id="story">
+      
+      <!-- 停靠的扰动率块：当上方动画结束后，它会逐渐显现并占据顶部空间 -->
+      <div id="perturb-inline">
+        <div class="perturb-label">当前扰动率</div>
+        <div class="perturb">5.063896%</div>
       </div>
 
-      <div class="table-shell reveal">
-        <table class="spec-table" id="specTable">
-          <thead>
-            <tr>
-              <th data-key="name" scope="col">MODEL<span class="arrow">↑</span></th>
-              <th data-key="params" class="num" scope="col">PARAMS<span class="arrow">↑</span></th>
-              <th data-key="ctx" class="num" scope="col">CONTEXT<span class="arrow">↑</span></th>
-              <th data-key="speed" class="num" scope="col">SPEED<span class="arrow">↑</span></th>
-              <th data-key="status" scope="col">STATUS<span class="arrow">↑</span></th>
-            </tr>
-          </thead>
-          <tbody id="specBody"></tbody>
-        </table>
-      </div>
-    </div>
-  </section>
-
-  <!-- ==================== PRICING ==================== -->
-  <section class="band" id="pricing">
-    <div class="wrap">
-      <div class="pricing-head">
-        <div class="band-head reveal" style="margin-bottom:0;">
-          <p class="eyebrow">PRICING</p>
-          <h2 class="display-md" style="margin-top:20px;">按需选择，随时升级。</h2>
-        </div>
-
-        <div class="toggle reveal" style="--d:100ms" role="group" aria-label="计费周期">
-          <div class="toggle-thumb" id="toggleThumb"></div>
-          <button class="toggle-btn active" data-cycle="month">月付</button>
-          <button class="toggle-btn" data-cycle="year">年付 · 省 20%</button>
-        </div>
-      </div>
-
-      <div class="price-grid">
-
-        <div class="price-card reveal" style="--d:0ms">
-          <p class="eyebrow">PERSONAL</p>
-          <div class="price">
-            <span class="price-cur">¥</span>
-            <span class="price-num amt" data-month="0" data-year="0" data-cur="0">0</span>
-            <span class="price-per">/ 月</span>
+      <div class="grab-header" data-anim>—— Atropos 抓取信息 ——</div>
+      
+      <!-- 块 1：系统日志 -->
+      <div class="doc-container" data-anim>
+        <div class="doc-path-bar">file:///bin.moirai/storage/emulated/atropos/5p2l6Ieq6L+H5Y67</div>
+        <div class="doc-meta-grid">
+          <div class="meta-box">
+            <span class="meta-key">文件编号</span>
+            <span class="meta-val">ATR-SYS-01</span>
           </div>
-          <p class="price-desc">面向个人开发者与研究者的起点。</p>
-          <ul class="feat">
-            <li>Grok-4 标准调用额度</li>
-            <li>128K 上下文窗口</li>
-            <li>社区支持</li>
-            <li>每月 10 万 tokens</li>
-          </ul>
-          <a href="#cta" class="pill">免费开始</a>
-        </div>
-
-        <div class="price-card featured reveal" style="--d:100ms">
-          <p class="eyebrow">TEAM</p>
-          <div class="price">
-            <span class="price-cur">¥</span>
-            <span class="price-num amt" data-month="199" data-year="159" data-cur="199">199</span>
-            <span class="price-per">/ 人 / 月</span>
+          <div class="meta-box">
+            <span class="meta-key">文件类型</span>
+            <span class="meta-val">系统日志</span>
           </div>
-          <p class="price-desc">面向需要稳定吞吐与优先调度的团队。</p>
-          <ul class="feat">
-            <li>全部模型，含 Heavy 与 Vision</li>
-            <li>2M 上下文窗口</li>
-            <li>优先级推理队列</li>
-            <li>SSO、审计日志与用量看板</li>
-            <li>7×24 工程支持</li>
-          </ul>
-          <a href="#cta" class="pill">开始 14 天试用</a>
         </div>
-
+        <div class="doc-content">
+          <div class="doc-text">
+            <p class="no-indent highlight-dim">宇宙标准时：约5.9×10⁷⁷个普朗克滴答</p>
+            <p class="no-indent highlight-dim" style="margin-bottom: 24px;">叙事标准时：距离 <span id="current-date-placeholder" style="color:#fff; font-weight:bold;">读取中...</span> 约10²⁷年</p>
+            
+            <p>第338536号站点主计算中心开始恢复进程。目前宇宙标准时：约5.9×10⁷⁷个普朗克滴答。距离上次重启已过地球标准时约10²⁷年。</p>
+            <p>本次恢复原因：站点时空相位变换仪检测到开启。</p>
+            <p>尝试访问时空相位变换仪检测系统……</p>
+            <p>扫描完成：目标人物，种族：人类（地球），性别：女，身份信息：未找到。</p>
+            <p>尝试向其他站点的人物数据库请求信息……</p>
+            <p class="no-indent highlight-red">ERROR:Timeout</p>
+            <p>所有站点（3500000）访问均超时（Timeout:9999+ms）。</p>
+            <p>尝试更换超光速通讯协议重试……</p>
+            <p class="no-indent highlight-red">ERROR:Timeout</p>
+            <p>所有站点（3500000）访问均超时（Timeout:9999+ms）。</p>
+            <p>已达到系统重试上限。</p>
+            <p>现在尝试对附近1000光年范围执行广域扫描，完成：已确认星体数量：黑洞：53976个，黑矮星：12578个，中子星：537个，恒星：0个，行星：1475个。</p>
+            <p>确认宇宙已经进入简并时代。根据现有信息推算，人类文明存在可能性为：<span class="highlight-red">10⁻⁵⁷%</span>。</p>
+            <p>根据末日学部应急预案，当前目标为：协助剩余人类物种，直至最后一刻。</p>
+          </div>
+        </div>
       </div>
-    </div>
-  </section>
 
-  <!-- ==================== CTA ==================== -->
-  <section class="band cta-band" id="cta">
-    <div class="wrap cta-inner">
-      <p class="eyebrow reveal">GET STARTED</p>
-      <h2 class="display-xl reveal" style="--d:80ms">准备好开始了吗。</h2>
-      <p class="body-lg reveal" style="--d:140ms" style="max-width:560px;">
-        接入 API 只需要一行命令。剩下的，交给模型。
-      </p>
-      <div class="hero-cta reveal" style="--d:200ms">
-        <a href="#pricing" class="pill pill-primary pill-lg magnetic">创建账号</a>
-        <a href="#models" class="pill pill-lg magnetic">阅读文档</a>
+      <div class="grab-header" data-anim>—— Atropos 抓取信息 ——</div>
+
+      <!-- 块 2：音频记录 1 -->
+      <div class="doc-container" data-anim>
+        <div class="doc-path-bar">file:///bin.moirai/storage/emulated/atropos/5p2l6Ieq6L+H5Y67</div>
+        <div class="doc-meta-grid">
+          <div class="meta-box">
+            <span class="meta-key">文件编号</span>
+            <span class="meta-val">ATR-AUD-01</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-key">文件类型</span>
+            <span class="meta-val">音频记录</span>
+          </div>
+        </div>
+        <div class="doc-content">
+          
+          <div class="section-title">？？？</div>
+          <div class="doc-text">
+            <p class="no-indent">哈……哈……妈的。</p>
+            <p class="no-indent">这里……是哪？</p>
+          </div>
+
+          <div class="action-desc">[金属碰撞声，敲击声]</div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>这里是SCP基金会位于仙女座M43星系的研究型空间站，而我是由基金会人工智能应用部门研制的空间站人工智能，您可以叫我晴空。女士，可否先向我告知您的大体个人信息？</p>
+          </div>
+
+          <div class="section-title">？？？</div>
+          <div class="doc-text">
+            <p class="no-indent">神宫寺结月，工程部博士……现在什么情况？</p>
+          </div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>神宫寺女士，您的身体状况很差，请暂时休息一会，我稍后会将完整情况告诉您。</p>
+            <p>不过，我建议您先做好心理准备。情况可能比您想象的要……糟糕得多。</p>
+          </div>
+
+        </div>
       </div>
-    </div>
+
+      <div class="grab-header" data-anim>—— Atropos 抓取信息 ——</div>
+
+      <!-- 块 3：音频记录 2 -->
+      <div class="doc-container" data-anim>
+        <div class="doc-path-bar">file:///bin.moirai/storage/emulated/atropos/5p2l6Ieq6L+H5Y67</div>
+        <div class="doc-meta-grid">
+          <div class="meta-box">
+            <span class="meta-key">文件编号</span>
+            <span class="meta-val">ATR-AUD-02</span>
+          </div>
+          <div class="meta-box">
+            <span class="meta-key">文件类型</span>
+            <span class="meta-val">音频记录</span>
+          </div>
+        </div>
+        <div class="doc-content">
+
+          <div class="section-title">神宫寺结月</div>
+          <div class="doc-text">
+            <p class="no-indent">所以说，情况能有糟糕？</p>
+            <p class="no-indent">空间站失联？遭了收容失效或外部打击？总不能是人类文明灭绝了吧？</p>
+            <p class="no-indent" style="margin-top: 16px;">……你怎么不说话？</p>
+          </div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>是的，神宫寺女士，正如您所言，人类文明已经灭绝了。</p>
+            <p>大约10²⁷年。</p>
+          </div>
+
+          <div class="section-title">神宫寺结月</div>
+          <div class="doc-text">
+            <p class="no-indent">……多少？</p>
+          </div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>10²⁷。10后面加27个零。</p>
+            <p>神宫寺女士？</p>
+            <p>……我觉得我有必要为您注射镇定剂。</p>
+          </div>
+
+          <div class="section-title">神宫寺结月</div>
+          <div class="doc-text">
+            <p class="no-indent">我很冷静。晴空。</p>
+          </div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>您的生理情况不会骗人。</p>
+          </div>
+
+          <div class="section-title">神宫寺结月</div>
+          <div class="doc-text">
+            <p class="no-indent">让我一个人待一会。</p>
+          </div>
+
+          <div class="section-title">晴空.AIC</div>
+          <div class="doc-text">
+            <p>这……好的，神宫寺女士。</p>
+            <p>如果您想聊天，可以随时找我。</p>
+          </div>
+
+        </div>
+      </div>
+
+    </article>
   </section>
 
 </main>
 
-<!-- ==================== FOOTER ==================== -->
-<footer class="footer">
-  <div class="wrap">
-    <div class="footer-grid">
-      <div class="footer-brand">
-        <svg class="brand-mark" width="17" height="17" viewBox="0 0 18 18" fill="none" aria-hidden="true">
-          <path d="M1.2 16.8 L11 1.2" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-          <path d="M6.8 1.2 L16.8 16.8" stroke="#fff" stroke-width="1.6" stroke-linecap="round"/>
-        </svg>
-        <p>构建理解宇宙的工具。从第一性原理出发，不设上限。</p>
-      </div>
-
-      <div class="footer-col">
-        <h4>PRODUCT</h4>
-        <a href="#capabilities">能力</a>
-        <a href="#models">模型</a>
-        <a href="#pricing">定价</a>
-        <a href="#compute">基础设施</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>DEVELOPERS</h4>
-        <a href="#models">API 文档</a>
-        <a href="#models">SDK</a>
-        <a href="#compute">状态页</a>
-        <a href="#cta">控制台</a>
-      </div>
-
-      <div class="footer-col">
-        <h4>COMPANY</h4>
-        <a href="#top">关于</a>
-        <a href="#cta">加入我们</a>
-        <a href="#cta">联系</a>
-        <a href="#cta">安全</a>
-      </div>
-    </div>
-
-    <div class="footer-bottom">
-      <span>© 2026 XAI CORP.</span>
-      <span>MEMPHIS · TENNESSEE</span>
-    </div>
-  </div>
-</footer>
-
-<!-- ==================== COMMAND PALETTE ==================== -->
-<div class="cmdk" id="cmdk" role="dialog" aria-modal="true" aria-label="命令面板">
-  <div class="cmdk-backdrop" data-close></div>
-  <div class="cmdk-panel">
-    <input class="cmdk-input" id="cmdkInput" type="text" placeholder="跳转到…" autocomplete="off" />
-    <div class="cmdk-list" id="cmdkList"></div>
-  </div>
+<!-- 居中显示的浮动扰动率面板（用于过渡动画） -->
+<div id="perturb-panel">
+  <div class="perturb-label">当前扰动率</div>
+  <div class="perturb" id="perturb">0.000000%</div>
 </div>
 
 <script>
-(function () {
+(function(){
   'use strict';
 
-  const $  = (s, r = document) => r.querySelector(s);
-  const $$ = (s, r = document) => Array.from(r.querySelectorAll(s));
-  const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-  const lerp = (a, b, t) => a + (b - a) * t;
-  const reduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const $ = s => document.querySelector(s);
+  const wait = ms => new Promise(r => setTimeout(r, ms));
 
-  /* =========================================================
-     0. BOOT
-     ========================================================= */
-  requestAnimationFrame(() => document.body.classList.add('loaded'));
+  function show(id){
+    document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+    const el = document.getElementById(id);
+    if(el) el.classList.add('active');
+    window.scrollTo(0,0);
+  }
 
-  /* =========================================================
-     1. HERO DOT FIELD
-     ========================================================= */
-  (function dotField() {
-    const canvas = $('#field');
-    if (!canvas) return;
-    const ctx = canvas.getContext('2d');
+  // 动态生成兼容移动端的 SVG
+  function createMoiraiSVG(type, suffix) {
+    const idP = 'pattern-' + suffix;
+    const idM = 'mask-' + suffix;
+    
+    if (type === 'gear') {
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 600 600" width="100%" height="100%">
+          <defs>
+            <pattern id="${idP}" width="600" height="14" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="600" height="8" fill="#ffffff" />
+            </pattern>
+            <mask id="${idM}" maskUnits="userSpaceOnUse" x="0" y="0" width="600" height="600">
+              <rect x="0" y="0" width="600" height="600" fill="black" />
+              <rect x="0" y="0" width="600" height="600" fill="url(#${idP})" />
+            </mask>
+          </defs>
+          <g transform="translate(300, 300)">
+            <g>
+              <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" begin="0.5s" repeatCount="indefinite" />
+              <g transform="scale(3) translate(-100, -100)">
+                <path fill="#ffffff" fill-rule="evenodd" shape-rendering="geometricPrecision" d="M 73.464844 8.726562 C 73.441406 8.859375 72.859375 12.199219 72.167969 16.167969 C 71.484375 20.132812 70.890625 23.425781 70.859375 23.484375 C 70.816406 23.542969 70.25 23.808594 69.582031 24.074219 C 56.675781 29.285156 45.050781 37.949219 36.367188 48.832031 C 27.367188 60.117188 21.476562 73.566406 19.375 87.582031 C 19.257812 88.382812 19.117188 89.132812 19.074219 89.242188 C 18.910156 89.648438 18.574219 92.851562 18.417969 95.617188 C 18.308594 97.535156 18.308594 102.351562 18.417969 104.375 C 18.515625 106.191406 18.675781 107.890625 18.933594 110.066406 L 19.117188 111.601562 L 18.785156 111.910156 C 18.089844 112.558594 17.167969 113.410156 16.25 114.25 C 15.726562 114.734375 15.035156 115.367188 14.707031 115.667969 C 14.007812 116.324219 13.882812 116.433594 10.359375 119.699219 C 8.832031 121.101562 7.574219 122.285156 7.550781 122.324219 C 7.523438 122.359375 8.566406 124.226562 9.859375 126.464844 C 11.148438 128.707031 17.199219 139.175781 23.292969 149.726562 C 29.382812 160.285156 34.410156 168.917969 34.457031 168.917969 C 34.507812 168.917969 35.167969 168.691406 35.925781 168.410156 C 36.675781 168.132812 38.308594 167.535156 39.542969 167.082031 C 46.875 164.398438 48.675781 163.75 48.742188 163.75 C 48.792969 163.75 49.042969 163.933594 49.316406 164.160156 C 50.839844 165.433594 54.582031 168.066406 57.042969 169.601562 C 61.207031 172.199219 66.632812 174.851562 71.707031 176.75 C 83.824219 181.292969 97.234375 182.890625 110.082031 181.332031 C 116.941406 180.5 123.867188 178.765625 130.042969 176.332031 C 130.867188 176.007812 131.617188 175.734375 131.707031 175.714844 C 132.160156 175.640625 134.824219 174.425781 137.457031 173.101562 C 141.734375 170.933594 145.476562 168.617188 149.398438 165.691406 L 151.007812 164.5 L 151.441406 164.632812 C 151.683594 164.707031 151.992188 164.800781 152.125 164.851562 C 152.515625 164.976562 156.316406 166.160156 156.875 166.324219 C 157.839844 166.617188 162.292969 168.007812 162.5 168.082031 C 162.617188 168.125 163.101562 168.273438 163.582031 168.417969 C 164.066406 168.566406 164.808594 168.792969 165.234375 168.933594 C 165.660156 169.066406 166.042969 169.167969 166.082031 169.148438 C 166.183594 169.117188 193.015625 122.660156 192.984375 122.582031 C 192.957031 122.523438 191.359375 121.175781 184.667969 115.601562 C 182.992188 114.199219 181.558594 112.992188 181.464844 112.917969 C 181.316406 112.765625 181.316406 112.742188 181.484375 111.523438 C 182.410156 105.007812 182.515625 98.558594 181.824219 91.75 C 180.226562 76.007812 174.191406 61.242188 164.285156 48.816406 C 157.933594 40.851562 149.910156 33.984375 141 28.890625 C 138.207031 27.300781 134.324219 25.390625 131.523438 24.25 C 131.140625 24.101562 130.816406 23.910156 130.800781 23.839844 C 130.773438 23.765625 130 20.351562 129.082031 16.25 C 128.160156 12.148438 127.382812 8.726562 127.367188 8.640625 C 127.324219 8.507812 125.964844 8.5 100.417969 8.5 L 73.515625 8.5 Z M 122.867188 12.976562 C 122.933594 13.199219 124.824219 21.300781 125.5 24.25 C 125.824219 25.691406 126.125 26.984375 126.160156 27.125 C 126.214844 27.359375 126.308594 27.410156 127.800781 27.984375 C 131.082031 29.25 135 31.066406 137.707031 32.582031 C 146.542969 37.515625 154.148438 43.933594 160.375 51.667969 C 170.074219 63.726562 175.898438 78.351562 177.160156 93.792969 C 177.433594 97.132812 177.484375 103.058594 177.25 105.832031 C 177.035156 108.5 176.625 111.625 176.148438 114.273438 L 176.050781 114.832031 L 176.417969 115.191406 C 176.625 115.382812 177.132812 115.824219 177.542969 116.167969 C 177.957031 116.507812 178.332031 116.832031 178.390625 116.882812 C 178.441406 116.933594 178.867188 117.292969 179.339844 117.675781 C 179.808594 118.058594 180.550781 118.675781 180.992188 119.042969 C 181.433594 119.417969 182.859375 120.609375 184.167969 121.699219 C 187.351562 124.367188 187.125 124.160156 187.023438 124.324219 C 186.984375 124.398438 181.925781 133.148438 175.800781 143.765625 C 169.101562 155.375 164.601562 163.082031 164.535156 163.082031 C 164.464844 163.082031 163.800781 162.898438 163.058594 162.675781 C 162.316406 162.449219 161.574219 162.226562 161.417969 162.183594 C 161.066406 162.089844 157.675781 161.066406 156.957031 160.839844 C 156.683594 160.75 156.125 160.582031 155.707031 160.457031 C 155.300781 160.332031 154.882812 160.199219 154.792969 160.167969 C 154.699219 160.125 154.457031 160.050781 154.25 160 C 154.042969 159.949219 153.800781 159.875 153.707031 159.832031 C 153.617188 159.792969 153.285156 159.683594 152.957031 159.601562 C 152.640625 159.507812 151.917969 159.292969 151.359375 159.125 C 150.351562 158.816406 150.339844 158.816406 150.132812 158.964844 C 150.023438 159.058594 149.390625 159.558594 148.734375 160.089844 C 146.714844 161.726562 142.992188 164.417969 142.757812 164.417969 C 142.714844 164.417969 142.339844 164.632812 141.941406 164.890625 C 138.050781 167.398438 133.199219 169.882812 128.757812 171.640625 C 121.242188 174.617188 113.785156 176.300781 105.292969 176.933594 C 103.433594 177.066406 97.234375 177.066406 95.375 176.933594 C 84.515625 176.125 74.964844 173.515625 65.667969 168.824219 C 60.851562 166.398438 55.816406 163.167969 52.042969 160.082031 C 51.726562 159.816406 51.417969 159.589844 51.359375 159.574219 C 51.308594 159.558594 50.898438 159.226562 50.457031 158.839844 L 49.648438 158.148438 L 49.257812 158.234375 C 48.882812 158.316406 48.339844 158.5 45.667969 159.5 C 44.910156 159.785156 43.074219 160.457031 41.582031 161 C 40.089844 161.542969 38.257812 162.214844 37.5 162.492188 C 36.75 162.773438 36.089844 163 36.042969 163 C 35.992188 163 30.898438 154.242188 24.714844 143.535156 L 13.476562 124.066406 L 13.757812 123.816406 C 13.917969 123.675781 14.660156 122.976562 15.417969 122.257812 C 16.175781 121.550781 17.035156 120.734375 17.332031 120.457031 C 17.632812 120.175781 18.234375 119.609375 18.667969 119.191406 C 19.101562 118.773438 19.660156 118.257812 19.910156 118.035156 C 20.160156 117.808594 20.5 117.492188 20.675781 117.332031 C 21.242188 116.800781 22.851562 115.292969 23.074219 115.089844 C 23.191406 114.984375 23.542969 114.660156 23.839844 114.367188 L 24.398438 113.832031 L 24.285156 113.234375 C 23.867188 111.066406 23.410156 107.117188 23.375 105.5 C 23.367188 104.832031 23.324219 103.035156 23.292969 101.5 C 23.191406 97.058594 23.457031 92.839844 24.125 88.457031 C 27.375 67.035156 39.464844 47.984375 57.457031 35.957031 C 62.714844 32.433594 68.617188 29.457031 74.292969 27.457031 C 75.25 27.117188 75.292969 27.089844 75.359375 26.824219 C 75.441406 26.492188 75.984375 23.449219 77.007812 17.542969 C 77.425781 15.160156 77.785156 13.125 77.808594 13.015625 L 77.851562 12.832031 L 100.332031 12.832031 C 121.683594 12.832031 122.824219 12.839844 122.867188 12.976562 Z M 122.867188 12.976562 Z" />
+              </g>
+            </g>
+          </g>
+          <g transform="translate(300,300) scale(1.02,1.2) translate(-400,-100)">
+            <text x="400" y="100" text-anchor="middle" dominant-baseline="central"
+                  font-family="'Arial Black', 'Impact', 'Helvetica Neue', sans-serif"
+                  font-weight="900" font-size="150" letter-spacing="-8"
+                  fill="#ffffff" mask="url(#${idM})">Moirai</text>
+          </g>
+        </svg>
+      `;
+    } else {
+      return `
+        <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 800 200" width="100%" height="100%" style="display:block;">
+          <defs>
+            <pattern id="${idP}" width="800" height="14" patternUnits="userSpaceOnUse">
+              <rect x="0" y="0" width="800" height="8" fill="#ffffff" />
+            </pattern>
+            <mask id="${idM}">
+              <rect width="100%" height="100%" fill="black" />
+              <rect width="100%" height="100%" fill="url(#${idP})" />
+            </mask>
+          </defs>
+          <g transform="translate(400, 100) scale(0.85, 1) translate(-400, -100)">
+            <text x="50%" y="50%" text-anchor="middle" dominant-baseline="central"
+                  font-family="'Arial Black', 'Impact', 'Helvetica Neue', sans-serif"
+                  font-weight="900" font-size="150" letter-spacing="-8"
+                  fill="#ffffff" mask="url(#${idM})">Moirai</text>
+          </g>
+        </svg>
+      `;
+    }
+  }
 
-    let W = 0, H = 0, DPR = 1;
-    let dots = [];
-    let mx = -9999, my = -9999, tx = -9999, ty = -9999;
-    let rafId = null;
-    let visible = true;
+  function browserLabel(){
+    const ua = navigator.userAgent;
+    let b = '未知浏览器';
+    if(/Edg\//.test(ua)) b = 'Edge';
+    else if(/OPR\//.test(ua)) b = 'Opera';
+    else if(/Firefox\//.test(ua)) b = 'Firefox';
+    else if(/Chrome\//.test(ua)) b = 'Chrome';
+    else if(/Safari\//.test(ua)) b = 'Safari';
 
-    const GAP = 32;
-    const RADIUS = 210;
-    const RADIUS2 = RADIUS * RADIUS;
+    let os = '未知系统';
+    if(/Windows NT 10/.test(ua)) os = 'Windows 10/11';
+    else if(/Windows/.test(ua)) os = 'Windows';
+    else if(/Mac OS X/.test(ua)) os = 'macOS';
+    else if(/Android/.test(ua)) os = 'Android';
+    else if(/iPhone|iPad/.test(ua)) os = 'iOS';
+    else if(/Linux/.test(ua)) os = 'Linux';
 
-    function build() {
-      dots = [];
-      for (let y = GAP * 0.5; y < H; y += GAP) {
-        for (let x = GAP * 0.5; x < W; x += GAP) {
-          dots.push(x, y);
-        }
+    return b + ' / ' + os;
+  }
+
+  function getWikidotUser(){
+    try{
+      const info = window.WIKIREQUEST && window.WIKIREQUEST.info;
+      if(info && info.userId && info.userId !== 0 && info.userName){
+        return { name: String(info.userName), id: String(info.userId) };
       }
-    }
+    }catch(e){}
+    return null;
+  }
 
-    function resize() {
-      DPR = Math.min(window.devicePixelRatio || 1, 2);
-      const rect = canvas.getBoundingClientRect();
-      W = rect.width;
-      H = rect.height;
-      canvas.width  = Math.max(1, Math.round(W * DPR));
-      canvas.height = Math.max(1, Math.round(H * DPR));
-      ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
-      build();
-    }
+  async function getIP(){
+    try{
+      const ctrl = new AbortController();
+      const timer = setTimeout(() => ctrl.abort(), 2500);
+      const res = await fetch('https://api.ipify.org?format=json', { signal: ctrl.signal });
+      clearTimeout(timer);
+      const json = await res.json();
+      if(json && json.ip) return json.ip;
+      return null;
+    }catch(e){ return null; }
+  }
 
-    function frame() {
-      if (!visible) { rafId = null; return; }
-
-      mx = lerp(mx, tx, 0.16);
-      my = lerp(my, ty, 0.16);
-
-      ctx.clearRect(0, 0, W, H);
-
-      for (let i = 0; i < dots.length; i += 2) {
-        const x = dots[i];
-        const y = dots[i + 1];
-        const dx = x - mx;
-        const dy = y - my;
-        const d2 = dx * dx + dy * dy;
-
-        let e = 0;
-        if (d2 < RADIUS2) {
-          const t = 1 - Math.sqrt(d2) / RADIUS;
-          e = t * t;
-        }
-
-        const r = 0.9 + e * 2.3;
-        const a = 0.075 + e * 0.62;
-
-        ctx.fillStyle = 'rgba(255,255,255,' + a.toFixed(3) + ')';
-        ctx.beginPath();
-        ctx.arc(x, y, r, 0, 6.28318);
-        ctx.fill();
+  function requestMic(){
+    return new Promise(resolve => {
+      let settled = false;
+      const done = v => { if(!settled){ settled = true; resolve(v); } };
+      if(!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia){
+        return done(false);
       }
-
-      rafId = requestAnimationFrame(frame);
-    }
-
-    const hero = $('.hero');
-    if (hero) {
-      hero.addEventListener('mousemove', (ev) => {
-        const rect = canvas.getBoundingClientRect();
-        tx = ev.clientX - rect.left;
-        ty = ev.clientY - rect.top;
-      }, { passive: true });
-
-      hero.addEventListener('mouseleave', () => {
-        tx = -9999;
-        ty = -9999;
-      });
-    }
-
-    window.addEventListener('resize', () => {
-      clearTimeout(resize._t);
-      resize._t = setTimeout(resize, 140);
+      setTimeout(() => done(false), 15000);
+      navigator.mediaDevices.getUserMedia({ audio:true })
+        .then(stream => {
+          stream.getTracks().forEach(t => t.stop());
+          done(true);
+        })
+        .catch(() => done(false));
     });
+  }
 
-    if ('IntersectionObserver' in window) {
-      new IntersectionObserver((entries) => {
-        visible = entries[0].isIntersecting;
-        if (visible && rafId === null) rafId = requestAnimationFrame(frame);
-      }, { threshold: 0 }).observe(canvas);
-    }
+  /* ================= 1. 警告页 ================= */
+  const driftNote = $('#drift-note');
+  const btnRefuse = $('#btn-refuse');
+  let refusedOnce = false;
 
-    resize();
-    if (!reduced) rafId = requestAnimationFrame(frame);
-    else {
-      ctx.clearRect(0, 0, W, H);
-      for (let i = 0; i < dots.length; i += 2) {
-        ctx.fillStyle = 'rgba(255,255,255,0.075)';
-        ctx.beginPath();
-        ctx.arc(dots[i], dots[i + 1], 0.9, 0, 6.28318);
-        ctx.fill();
-      }
-    }
-  })();
+  $('#btn-continue').addEventListener('click', () => goVaccine());
 
-  /* =========================================================
-     2. SCROLL PROGRESS + NAV STATE
-     ========================================================= */
-  (function scrollUI() {
-    const bar = $('#progress');
-    const nav = $('#nav');
-    let ticking = false;
-
-    function update() {
-      const doc = document.documentElement;
-      const max = doc.scrollHeight - window.innerHeight;
-      const p = max > 0 ? clamp(window.scrollY / max, 0, 1) : 0;
-      if (bar) bar.style.transform = 'scaleX(' + p + ')';
-      if (nav) nav.classList.toggle('scrolled', window.scrollY > 24);
-      ticking = false;
-    }
-
-    window.addEventListener('scroll', () => {
-      if (!ticking) {
-        ticking = true;
-        requestAnimationFrame(update);
-      }
-    }, { passive: true });
-
-    update();
-  })();
-
-  /* =========================================================
-     3. REVEAL ON SCROLL
-     ========================================================= */
-  (function reveal() {
-    const els = $$('.reveal');
-    if (!els.length) return;
-
-    if (!('IntersectionObserver' in window)) {
-      els.forEach((el) => el.classList.add('in'));
+  btnRefuse.addEventListener('click', () => {
+    if(!refusedOnce){
+      refusedOnce = true;
+      driftNote.textContent = '叙述事实已发生偏移。指针仍在锚定中。';
+      document.body.classList.add('glitch');
+      setTimeout(() => document.body.classList.remove('glitch'), 420);
+      btnRefuse.textContent = '仍要继续';
       return;
     }
+    goVaccine();
+  });
 
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((en) => {
-        if (en.isIntersecting) {
-          en.target.classList.add('in');
-          io.unobserve(en.target);
-        }
-      });
-    }, { threshold: 0.12, rootMargin: '0px 0px -60px 0px' });
+  /* ================= 2. 疫苗页 ================= */
+  let vaccineStarted = false;
 
-    els.forEach((el) => io.observe(el));
-  })();
+  function goVaccine(){
+    show('s-vaccine');
+    if(vaccineStarted) return;
+    vaccineStarted = true;
+    runVaccine();
+  }
 
-  /* =========================================================
-     4. COUNT-UP STATS
-     ========================================================= */
-  (function countUp() {
-    const els = $$('[data-count]');
-    if (!els.length) return;
+  async function runVaccine(){
+    const fill = $('#inoc-fill');
+    const status = $('#inoc-status');
+    status.textContent = '接种中……';
 
-    function run(el) {
-      const target = parseFloat(el.dataset.count);
-      const dec = parseInt(el.dataset.decimals || '0', 10);
-      const suffix = el.dataset.suffix || '';
-      const dur = 1500;
+    const dur = 1600, start = performance.now();
+    await new Promise(res => {
+      function step(t){
+        const p = Math.min(1, (t - start) / dur);
+        fill.style.width = (p * 100) + '%';
+        if(p < 1) requestAnimationFrame(step);
+        else res();
+      }
+      requestAnimationFrame(step);
+    });
+
+    await wait(400);
+    status.textContent = '文字模因疫苗接种完成';
+    status.classList.add('done');
+
+    const agree = $('#btn-agree');
+    agree.disabled = false;
+    agree.classList.add('show');
+    agree.addEventListener('click', () => {
+      show('s-loading');
+      runLoading();
+    }, { once:true });
+  }
+
+  /* ================= 3. 伪加载页 ================= */
+  function runLoading(){
+    const fill = $('#load-fill');
+    const pct  = $('#load-pct');
+
+    const dur = 2000;
+    const start = performance.now();
+
+    function tick(now){
+      const t = Math.min(1, (now - start) / dur);
+      const eased = 1 - Math.pow(1 - t, 3);
+      const p = eased * 90;
+
+      fill.style.width = p + '%';
+      pct.textContent = Math.floor(p) + '%';
+
+      if(t < 1){
+        requestAnimationFrame(tick);
+      }else{
+        fill.style.width = '90%';
+        pct.textContent = '90%';
+
+        setTimeout(() => {
+          fill.style.width = '100%';
+          pct.textContent = '100%';
+
+          setTimeout(async () => {
+            await setupGate();
+            show('s-gate');
+          }, 400);
+        }, 800);
+      }
+    }
+    requestAnimationFrame(tick);
+  }
+
+  /* ================= 4. 登入页 ================= */
+  let gateFilled = false;
+
+  async function setupGate(){
+    if(!gateFilled){
+      gateFilled = true;
+      $('#gate-visual').innerHTML = createMoiraiSVG('gear', 'anim');
+      $('#gate-avatar').innerHTML = createMoiraiSVG('text', 'avatar');
+    }
+
+    const nameEl = $('#gate-name');
+    const idEl   = $('#gate-id');
+    const wd = getWikidotUser();
+
+    if(wd){
+      nameEl.textContent = wd.name;
+      idEl.textContent = 'USER ID · ' + wd.id;
+    }else{
+      nameEl.textContent = browserLabel();
+      idEl.textContent = '身份标识 · 获取中……';
+      const ip = await getIP();
+      idEl.textContent = '身份标识 · ' + (ip || '127.0.0.1 (本地回环)');
+    }
+  }
+
+  $('#btn-login').addEventListener('click', () => {
+    const micPromise = requestMic();
+    startTerminal(micPromise);
+  }, { once:true });
+
+  /* ================= 5. 终端打字机 ================= */
+  class Term{
+    constructor(root){
+      this.root = root;
+    }
+    wait(ms){ return wait(ms); }
+
+    async line(text, speed, cls){
+      speed = speed || 30;
+      cls = cls || '';
+      const div = document.createElement('div');
+      div.className = 'line';
+      this.root.appendChild(div);
+
+      for(let i = 0; i < text.length; i++){
+        div.textContent = text.slice(0, i + 1);
+        await wait(speed);
+      }
+
+      if(cls) div.className = 'line ' + cls;
+      return div;
+    }
+  }
+
+  function flicker(el, finalVal, duration){
+    return new Promise(resolve => {
       const start = performance.now();
-
-      function tick(now) {
-        const p = clamp((now - start) / dur, 0, 1);
-        const e = 1 - Math.pow(1 - p, 3);
-        el.textContent = (target * e).toFixed(dec) + suffix;
-        if (p < 1) requestAnimationFrame(tick);
-        else el.textContent = target.toFixed(dec) + suffix;
-      }
-      requestAnimationFrame(tick);
-    }
-
-    if (!('IntersectionObserver' in window)) {
-      els.forEach(run);
-      return;
-    }
-
-    const io = new IntersectionObserver((entries) => {
-      entries.forEach((en) => {
-        if (en.isIntersecting) {
-          run(en.target);
-          io.unobserve(en.target);
+      function step(){
+        const t = Math.min(1, (performance.now() - start) / duration);
+        if(t >= 1){
+          el.textContent = finalVal.toFixed(6) + '%';
+          el.classList.add('locked');
+          resolve();
+          return;
         }
-      });
-    }, { threshold: 0.6 });
-
-    els.forEach((el) => io.observe(el));
-  })();
-
-  /* =========================================================
-     5. CARD SPOTLIGHT
-     ========================================================= */
-  (function spotlight() {
-    $$('.card').forEach((card) => {
-      card.addEventListener('mousemove', (ev) => {
-        const r = card.getBoundingClientRect();
-        card.style.setProperty('--mx', (ev.clientX - r.left) + 'px');
-        card.style.setProperty('--my', (ev.clientY - r.top) + 'px');
-      }, { passive: true });
-    });
-  })();
-
-  /* =========================================================
-     6. MAGNETIC BUTTONS
-     ========================================================= */
-  (function magnetic() {
-    if (reduced) return;
-    if (window.matchMedia('(hover: none)').matches) return;
-
-    $$('.magnetic').forEach((el) => {
-      el.addEventListener('mousemove', (ev) => {
-        const r = el.getBoundingClientRect();
-        const x = ev.clientX - r.left - r.width / 2;
-        const y = ev.clientY - r.top - r.height / 2;
-        el.style.transform = 'translate(' + (x * 0.16).toFixed(2) + 'px,' + (y * 0.24).toFixed(2) + 'px)';
-      });
-      el.addEventListener('mouseleave', () => {
-        el.style.transform = '';
-      });
-    });
-  })();
-
-  /* =========================================================
-     7. COMPUTE SCALE DEMO
-     ========================================================= */
-  (function computeScale() {
-    const range = $('#scaleRange');
-    const barsEl = $('#bars');
-    if (!range || !barsEl) return;
-
-    const COUNT = 48;
-    const frag = document.createDocumentFragment();
-    for (let i = 0; i < COUNT; i++) {
-      const b = document.createElement('i');
-      const h = 12 + Math.pow(i / (COUNT - 1), 1.35) * 78;
-      b.style.height = h.toFixed(1) + 'px';
-      frag.appendChild(b);
-    }
-    barsEl.appendChild(frag);
-
-    const bars = $$('i', barsEl);
-
-    const out = {
-      params: $('#mParams'),
-      ctx: $('#mCtx'),
-      lat: $('#mLat'),
-      through: $('#mThrough')
-    };
-
-    const cur = { params: 3, ctx: 8, lat: 12, through: 1200 };
-    const tgt = { params: 3, ctx: 8, lat: 12, through: 1200 };
-
-    function fmtCtx(v) {
-      if (v >= 1000) return [(v / 1000).toFixed(1), 'M'];
-      return [Math.round(v).toString(), 'K'];
-    }
-
-    function apply(v) {
-      const t = v / 100;
-
-      // bars
-      const lit = Math.round(t * COUNT);
-      for (let i = 0; i < COUNT; i++) {
-        bars[i].classList.toggle('on', i < lit);
+        const jitter = (Math.random() - 0.5) * 0.45 * (1 - t);
+        el.textContent = (finalVal * (1 + jitter)).toFixed(6) + '%';
+        const interval = 30 + 300 * t * t;
+        setTimeout(step, interval);
       }
-
-      // track fill
-      range.style.setProperty('--p', (t * 100).toFixed(1) + '%');
-
-      // targets
-      tgt.params = 3 + t * 797;
-      tgt.ctx = 8 + Math.pow(t, 1.7) * 1992;
-      tgt.lat = 12 + t * 228;
-      tgt.through = 1200 - t * 1110;
-    }
-
-    let running = false;
-    function loop() {
-      let moving = false;
-
-      for (const k in cur) {
-        const diff = tgt[k] - cur[k];
-        if (Math.abs(diff) > 0.05) {
-          cur[k] += diff * 0.14;
-          moving = true;
-        } else {
-          cur[k] = tgt[k];
-        }
-      }
-
-      out.params.innerHTML = Math.round(cur.params) + '<span class="u">B</span>';
-      const c = fmtCtx(cur.ctx);
-      out.ctx.innerHTML = c[0] + '<span class="u">' + c[1] + '</span>';
-      out.lat.innerHTML = Math.round(cur.lat) + '<span class="u">ms</span>';
-      out.through.innerHTML = Math.round(cur.through) + '<span class="u">tok/s</span>';
-
-      if (moving) requestAnimationFrame(loop);
-      else running = false;
-    }
-
-    function kick() {
-      if (!running) {
-        running = true;
-        requestAnimationFrame(loop);
-      }
-    }
-
-    range.addEventListener('input', () => {
-      apply(parseFloat(range.value));
-      kick();
+      step();
     });
+  }
 
-    apply(parseFloat(range.value));
-    cur.params = tgt.params;
-    cur.ctx = tgt.ctx;
-    cur.lat = tgt.lat;
-    cur.through = tgt.through;
-    kick();
-  })();
+  async function revealStory(){
+    const story = document.getElementById('story');
+    story.style.display = 'block';
+    await wait(60);
 
-  /* =========================================================
-     8. SORTABLE MODEL TABLE
-     ========================================================= */
-  (function modelTable() {
-    const tbody = $('#specBody');
-    const table = $('#specTable');
-    if (!tbody || !table) return;
+    const items = story.querySelectorAll('[data-anim]');
+    for(const it of items){
+      it.classList.add('in');
+      await wait(200);
+    }
+  }
 
-    const models = [
-      { name: 'Grok-4 Heavy',  params: 800, ctx: 2048, speed: 92,  status: 'AVAILABLE' },
-      { name: 'Grok-4',        params: 314, ctx: 256,  speed: 148, status: 'AVAILABLE' },
-      { name: 'Grok-4 Vision', params: 88,  ctx: 512,  speed: 210, status: 'PREVIEW'   },
-      { name: 'Grok-3 Turbo',  params: 120, ctx: 512,  speed: 310, status: 'AVAILABLE' },
-      { name: 'Grok-Code',     params: 64,  ctx: 1024, speed: 480, status: 'AVAILABLE' },
-      { name: 'Grok-3 Mini',   params: 42,  ctx: 128,  speed: 620, status: 'AVAILABLE' }
-    ];
+  /* ================= 终端主流程 ================= */
+  async function startTerminal(micPromise){
+    show('s-terminal');
 
-    let sortKey = null;
-    let sortDir = 1;
+    const termEl = document.getElementById('term');
+    termEl.innerHTML = '';
+    termEl.style.opacity = '1';
+    termEl.style.transform = 'translateY(0)';
 
-    const STATUS_ZH = { AVAILABLE: '可用', PREVIEW: '预览' };
+    const panel = document.getElementById('perturb-panel');
+    panel.classList.remove('show', 'dock-top');
+    panel.style.background = ''; 
+    panel.style.display = ''; // 确保显示
+    
+    const T = new Term(termEl);
 
-    function render() {
-      const rows = models.slice();
+    await T.wait(1000);
+    await T.line('检测权限……', 60, 'dim');
 
-      if (sortKey) {
-        rows.sort((a, b) => {
-          const av = a[sortKey];
-          const bv = b[sortKey];
-          if (typeof av === 'number' && typeof bv === 'number') return (av - bv) * sortDir;
-          return String(av).localeCompare(String(bv)) * sortDir;
-        });
-      }
+    const granted = await micPromise;
 
-      tbody.innerHTML = rows.map((m, i) => {
-        const preview = m.status === 'PREVIEW';
-        return '<tr style="animation-delay:' + (i * 35) + 'ms">' +
-          '<td class="name">' + m.name + '</td>' +
-          '<td class="num">' + m.params + 'B</td>' +
-          '<td class="num">' + m.ctx + 'K</td>' +
-          '<td class="num">' + m.speed + '</td>' +
-          '<td><span class="badge' + (preview ? ' badge--preview' : '') + '">' +
-            '<i></i>' + (STATUS_ZH[m.status] || m.status) +
-          '</span></td>' +
-        '</tr>';
-      }).join('');
+    await T.wait(1500);
+    if(granted){
+      await T.line('权限已通过', 50, 'ok');
+    }else{
+      await T.line('权限未通过，将以备选模式展开', 50, 'warn');
     }
 
-    $$('th', table).forEach((th) => {
-      th.addEventListener('click', () => {
-        const key = th.dataset.key;
-        if (sortKey === key) sortDir *= -1;
-        else { sortKey = key; sortDir = 1; }
+    await T.wait(1800);
+    await T.line('系统初始化', 60);
 
-        $$('th', table).forEach((h) => {
-          h.classList.remove('sorted');
-          const arrow = $('.arrow', h);
-          if (arrow) arrow.textContent = '↑';
-        });
+    await T.wait(1000);
+    const moWrap = document.createElement('div');
+    moWrap.className = 'term-moirai svg-container';
+    moWrap.innerHTML = createMoiraiSVG('text', 'term');
+    termEl.appendChild(moWrap);
 
-        th.classList.add('sorted');
-        const arrow = $('.arrow', th);
-        if (arrow) arrow.textContent = sortDir === 1 ? '↑' : '↓';
+    await T.wait(2000);
+    await T.line('检测到上次关闭系统前存在未结束的任务', 40);
+    
+    await T.wait(1200);
+    await T.line('编号 #7593，扰动率 5.063896%', 40, 'hl');
+    
+    await T.wait(1500);
+    await T.line('正在自动恢复……', 60);
+    
+    await T.wait(2000);
+    await T.line('阿特洛波斯，已就位', 60);
+    
+    await T.wait(1200);
+    await T.line('自检完成', 60);
+    
+    await T.wait(1500);
+    await T.line('为了观测体验，阿特洛波斯已自动将叙事信息解码排版为可读内容', 35);
 
-        render();
-      });
-    });
+    await T.wait(2500);
 
-    render();
-  })();
+    // 1. 终端淡出
+    termEl.style.opacity = '0';
+    termEl.style.transform = 'translateY(-30px)';
+    await wait(800);
 
-  /* =========================================================
-     9. PRICING TOGGLE
-     ========================================================= */
-  (function pricing() {
-    const btns = $$('.toggle-btn');
-    const thumb = $('#toggleThumb');
-    const amounts = $$('.amt');
-    if (!btns.length || !thumb) return;
+    // 2. 面板居中显示
+    panel.classList.add('show');
+    await wait(100); 
+    
+    // 3. 数值闪烁并定格
+    await flicker(document.getElementById('perturb'), 5.063896, 2200);
+    
+    // 4. 定格后停顿 2.5 秒
+    await wait(2500);
 
-    let cycle = 'month';
+    // 5. 获取当前真实时间并填入 (修复文本)
+    const now = new Date();
+    const y = now.getFullYear();
+    const m = String(now.getMonth() + 1).padStart(2, '0');
+    const d = String(now.getDate()).padStart(2, '0');
+    document.getElementById('current-date-placeholder').textContent = `${y}/${m}/${d}`;
 
-    function positionThumb(activeBtn) {
-      thumb.style.width = activeBtn.offsetWidth + 'px';
-      thumb.style.transform = 'translateX(' + (activeBtn.offsetLeft - 3) + 'px)';
-    }
+    // 6. 平滑移动到顶部并变透明
+    panel.classList.remove('show');
+    panel.classList.add('dock-top');
+    await wait(1000); 
 
-    function animateAmount(el, to) {
-      const from = parseFloat(el.dataset.cur || '0');
-      if (from === to) { el.textContent = to; return; }
-      const dur = 480;
-      const start = performance.now();
+    // 7. 将 fixed 的浮层隐藏，并将 s-story 中的 inline 面板显示出来
+    panel.style.display = 'none';
+    show('s-story');
+    document.getElementById('perturb-inline').style.opacity = '1';
 
-      function tick(now) {
-        const p = clamp((now - start) / dur, 0, 1);
-        const e = 1 - Math.pow(1 - p, 3);
-        el.textContent = Math.round(lerp(from, to, e));
-        if (p < 1) requestAnimationFrame(tick);
-        else { el.textContent = to; el.dataset.cur = to; }
-      }
-      requestAnimationFrame(tick);
-    }
+    // 8. 触发其它内容的渐显
+    await revealStory();
+  }
 
-    function setCycle(next) {
-      if (cycle === next) return;
-      cycle = next;
-
-      btns.forEach((b) => {
-        const on = b.dataset.cycle === cycle;
-        b.classList.toggle('active', on);
-        if (on) positionThumb(b);
-      });
-
-      amounts.forEach((el) => {
-        animateAmount(el, parseFloat(el.dataset[cycle] || '0'));
-      });
-    }
-
-    btns.forEach((b) => {
-      b.addEventListener('click', () => setCycle(b.dataset.cycle));
-    });
-
-    // init thumb
-    const active = btns.find((b) => b.classList.contains('active')) || btns[0];
-    requestAnimationFrame(() => positionThumb(active));
-    window.addEventListener('resize', () => {
-      const cur = btns.find((b) => b.classList.contains('active')) || btns[0];
-      positionThumb(cur);
-    });
-  })();
-
-  /* =========================================================
-     10. COMMAND PALETTE
-     ========================================================= */
-  (function commandPalette() {
-    const root = $('#cmdk');
-    const input = $('#cmdkInput');
-    const list = $('#cmdkList');
-    const openBtn = $('#cmdBtn');
-    if (!root || !input || !list) return;
-
-    const commands = [
-      { label: '能力总览', desc: 'CAPABILITIES', href: '#capabilities' },
-      { label: '算力规模演示', desc: 'COMPUTE SCALE', href: '#compute' },
-      { label: '模型规格表', desc: 'MODEL LINEUP', href: '#models' },
-      { label: '定价方案', desc: 'PRICING', href: '#pricing' },
-      { label: '开始使用', desc: 'GET STARTED', href: '#cta' },
-      { label: '返回顶部', desc: 'TOP', href: '#top' }
-    ];
-
-    let filtered = commands.slice();
-    let activeIdx = 0;
-    let isOpen = false;
-
-    function renderList() {
-      if (!filtered.length) {
-        list.innerHTML = '<div class="cmdk-empty">没有匹配项</div>';
-        return;
-      }
-      list.innerHTML = filtered.map((c, i) => (
-        '<div class="cmdk-item' + (i === activeIdx ? ' active' : '') + '" data-idx="' + i + '">' +
-          '<span class="t">' + c.label + '</span>' +
-          '<span class="d">' + c.desc + '</span>' +
-        '</div>'
-      )).join('');
-    }
-
-    function filter(q) {
-      const s = q.trim().toLowerCase();
-      filtered = !s ? commands.slice() : commands.filter((c) =>
-        c.label.toLowerCase().includes(s) || c.desc.toLowerCase().includes(s)
-      );
-      activeIdx = 0;
-      renderList();
-    }
-
-    function open() {
-      if (isOpen) return;
-      isOpen = true;
-      root.classList.add('open');
-      document.body.style.overflow = 'hidden';
-      input.value = '';
-      filter('');
-      setTimeout(() => input.focus(), 40);
-    }
-
-    function close() {
-      if (!isOpen) return;
-      isOpen = false;
-      root.classList.remove('open');
-      document.body.style.overflow = '';
-      input.blur();
-    }
-
-    function go(cmd) {
-      if (!cmd) return;
-      close();
-      const target = document.querySelector(cmd.href);
-      if (target) {
-        setTimeout(() => target.scrollIntoView({ behavior: reduced ? 'auto' : 'smooth', block: 'start' }), 80);
-      }
-    }
-
-    input.addEventListener('input', () => filter(input.value));
-
-    list.addEventListener('mousemove', (ev) => {
-      const item = ev.target.closest('.cmdk-item');
-      if (!item) return;
-      const idx = parseInt(item.dataset.idx, 10);
-      if (idx !== activeIdx) {
-        activeIdx = idx;
-        $$('.cmdk-item', list).forEach((el, i) => el.classList.toggle('active', i === idx));
-      }
-    });
-
-    list.addEventListener('click', (ev) => {
-      const item = ev.target.closest('.cmdk-item');
-      if (!item) return;
-      go(filtered[parseInt(item.dataset.idx, 10)]);
-    });
-
-    document.addEventListener('keydown', (ev) => {
-      const meta = ev.metaKey || ev.ctrlKey;
-
-      if (meta && ev.key.toLowerCase() === 'k') {
-        ev.preventDefault();
-        isOpen ? close() : open();
-        return;
-      }
-
-      if (!isOpen) return;
-
-      if (ev.key === 'Escape') {
-        ev.preventDefault();
-        close();
-      } else if (ev.key === 'ArrowDown') {
-        ev.preventDefault();
-        activeIdx = (activeIdx + 1) % Math.max(filtered.length, 1);
-        renderList();
-      } else if (ev.key === 'ArrowUp') {
-        ev.preventDefault();
-        activeIdx = (activeIdx - 1 + filtered.length) % Math.max(filtered.length, 1);
-        renderList();
-      } else if (ev.key === 'Enter') {
-        ev.preventDefault();
-        go(filtered[activeIdx]);
-      }
-    });
-
-    root.addEventListener('click', (ev) => {
-      if (ev.target.hasAttribute('data-close')) close();
-    });
-
-    if (openBtn) openBtn.addEventListener('click', open);
-  })();
-
-  /* =========================================================
-     11. MARQUEE — duplicate track content for seamless loop
-     ========================================================= */
-  (function marquee() {
-    const track = $('#marqueeTrack');
-    if (!track) return;
-    track.innerHTML += track.innerHTML;
-  })();
 })();
 </script>
+
 </body>
 </html>
